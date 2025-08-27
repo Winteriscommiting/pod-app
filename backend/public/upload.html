@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Document - PodcastAI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <!-- Navigation -->
+    <nav class="dashboard-nav">
+        <div class="nav-brand">
+            <i class="fas fa-podcast"></i>
+            <span>PodcastAI</span>
+        </div>
+        <div class="nav-user">
+            <a href="dashboard.html" class="btn btn-small btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+            <span id="userName">Loading...</span>
+            <button class="btn btn-small" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="upload-main">
+        <div class="container">
+            <div class="upload-header">
+                <h1><i class="fas fa-upload"></i> Upload Document</h1>
+                <p>Upload your document to convert it into a podcast</p>
+            </div>
+
+            <div class="upload-container">
+                <div class="upload-section">
+                    <form id="uploadForm" class="upload-form">
+                        <div class="form-group">
+                            <label for="documentFile">Select Document</label>
+                            <div class="file-upload-large">
+                                <input type="file" id="documentFile" name="document" accept=".pdf,.docx,.txt" required>
+                                <div class="file-upload-area">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <h3>Drag and drop your document here</h3>
+                                    <p>or <span class="upload-link">click to browse</span></p>
+                                    <div class="file-types">
+                                        <span class="file-type">PDF</span>
+                                        <span class="file-type">DOCX</span>
+                                        <span class="file-type">TXT</span>
+                                    </div>
+                                    <small>Maximum file size: 10MB</small>
+                                </div>
+                                <div class="file-selected hidden">
+                                    <div class="file-info">
+                                        <i class="fas fa-file-alt"></i>
+                                        <div class="file-details">
+                                            <span class="file-name"></span>
+                                            <span class="file-size"></span>
+                                        </div>
+                                        <button type="button" class="btn btn-small btn-secondary" id="removeFile" title="Remove selected file">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="documentTitle">Document Title (Optional)</label>
+                            <input type="text" id="documentTitle" name="title" placeholder="Enter a custom title for your document">
+                            <small>If left empty, the filename will be used</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="documentDescription">Description (Optional)</label>
+                            <textarea id="documentDescription" name="description" rows="4" placeholder="Add a description for your document"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancelBtn">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <span class="btn-text">
+                                    <i class="fas fa-upload"></i>
+                                    Upload & Process
+                                </span>
+                                <span class="btn-loader hidden">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Processing...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="upload-info">
+                    <div class="info-card">
+                        <h3><i class="fas fa-info-circle"></i> Supported Formats</h3>
+                        <ul>
+                            <li><strong>PDF:</strong> Text-based PDFs with extractable content</li>
+                            <li><strong>DOCX:</strong> Microsoft Word documents</li>
+                            <li><strong>TXT:</strong> Plain text files</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-card">
+                        <h3><i class="fas fa-cogs"></i> Processing Steps</h3>
+                        <ol>
+                            <li>Document text extraction</li>
+                            <li>Content optimization for audio</li>
+                            <li>Metadata generation</li>
+                            <li>Ready for podcast creation</li>
+                        </ol>
+                    </div>
+
+                    <div class="info-card">
+                        <h3><i class="fas fa-shield-alt"></i> Privacy & Security</h3>
+                        <p>Your documents are processed securely and stored with encryption. Only you have access to your uploaded content.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Progress Modal -->
+    <div id="progressModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Processing Document</h2>
+            </div>
+            <div class="progress-content">
+                <div class="progress-steps">
+                    <div class="progress-step active" id="step1">
+                        <div class="step-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <span>Uploading</span>
+                    </div>
+                    <div class="progress-step" id="step2">
+                        <div class="step-icon">
+                            <i class="fas fa-file-text"></i>
+                        </div>
+                        <span>Extracting Text</span>
+                    </div>
+                    <div class="progress-step" id="step3">
+                        <div class="step-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <span>Processing</span>
+                    </div>
+                    <div class="progress-step" id="step4">
+                        <div class="step-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <span>Complete</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">Uploading document...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/upload.js"></script>
+</body>
+</html>

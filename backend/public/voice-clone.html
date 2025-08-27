@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Cloning - PodcastAI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <!-- Navigation -->
+    <nav class="dashboard-nav">
+        <div class="nav-brand">
+            <i class="fas fa-podcast"></i>
+            <span>PodcastAI</span>
+        </div>
+        <div class="nav-user">
+            <a href="dashboard.html" class="btn btn-small btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+            <span id="userName">Loading...</span>
+            <button class="btn btn-small" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="voice-clone-main">
+        <div class="container">
+            <div class="voice-header">
+                <div class="header-content">
+                    <h1><i class="fas fa-microphone"></i> Voice Cloning</h1>
+                    <p>Create custom AI voices from your voice samples</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="uploadVoiceBtn">
+                        <i class="fas fa-microphone"></i>
+                        Upload Voice Sample
+                    </button>
+                </div>
+            </div>
+
+            <!-- Voice Clone Process -->
+            <div class="clone-process">
+                <div class="process-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Record or Upload</h3>
+                        <p>Upload a high-quality voice sample (at least 30 seconds)</p>
+                    </div>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>AI Processing</h3>
+                        <p>Our AI analyzes your voice characteristics</p>
+                    </div>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Voice Creation</h3>
+                        <p>Generate your personalized AI voice clone</p>
+                    </div>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Use in Podcasts</h3>
+                        <p>Create podcasts with your cloned voice</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Categories -->
+            <div class="voice-categories">
+                <!-- AI Voices -->
+                <div class="voice-category">
+                    <div class="category-header">
+                        <h2><i class="fas fa-robot"></i> AI Voices</h2>
+                        <p>Choose from our collection of high-quality AI voices</p>
+                    </div>
+                    <div class="voices-grid" id="aiVoicesGrid">
+                        <!-- AI voices will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Cloned Voices -->
+                <div class="voice-category">
+                    <div class="category-header">
+                        <h2><i class="fas fa-user"></i> Your Cloned Voices</h2>
+                        <p>Your custom voice clones</p>
+                    </div>
+                    <div class="voices-grid" id="clonedVoicesGrid">
+                        <!-- Cloned voices will be loaded here -->
+                    </div>
+                    
+                    <!-- Empty State for Cloned Voices -->
+                    <div class="empty-state" id="emptyClonedState">
+                        <i class="fas fa-microphone-alt"></i>
+                        <h3>No voice clones yet</h3>
+                        <p>Upload a voice sample to create your first voice clone</p>
+                        <button class="btn btn-primary" id="uploadVoiceBtnEmpty">
+                            <i class="fas fa-microphone"></i>
+                            Upload Voice Sample
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Upload Voice Modal -->
+    <div id="uploadVoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Voice Sample</h2>
+                <button class="modal-close" id="closeUploadModal" title="Close upload modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="uploadVoiceForm" class="modal-form">
+                <div class="form-group">
+                    <label for="voiceFile">Voice Sample</label>
+                    <div class="file-upload-large">
+                        <input type="file" id="voiceFile" name="voiceSample" accept=".wav,.mp3,.m4a,.flac" required>
+                        <div class="file-upload-area">
+                            <i class="fas fa-microphone"></i>
+                            <h3>Upload your voice sample</h3>
+                            <p>or <span class="upload-link">click to browse</span></p>
+                            <div class="file-types">
+                                <span class="file-type">WAV</span>
+                                <span class="file-type">MP3</span>
+                                <span class="file-type">M4A</span>
+                                <span class="file-type">FLAC</span>
+                            </div>
+                            <small>Minimum 30 seconds, Maximum 50MB</small>
+                        </div>
+                        <div class="file-selected hidden">
+                            <div class="file-info">
+                                <i class="fas fa-microphone"></i>
+                                <div class="file-details">
+                                    <span class="file-name"></span>
+                                    <span class="file-size"></span>
+                                </div>
+                                <button type="button" class="btn btn-small btn-secondary" id="removeFile" title="Remove selected file">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="voiceName">Voice Name</label>
+                    <input type="text" id="voiceName" name="name" placeholder="My Voice" required>
+                    <small>Choose a name for your voice clone</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="voiceDescription">Description (Optional)</label>
+                    <textarea id="voiceDescription" name="description" rows="3" placeholder="Describe your voice or its intended use"></textarea>
+                </div>
+
+                <div class="voice-requirements">
+                    <h4><i class="fas fa-info-circle"></i> Requirements for Best Results</h4>
+                    <ul>
+                        <li>Clear, high-quality audio recording</li>
+                        <li>Minimum 30 seconds of continuous speech</li>
+                        <li>No background noise or music</li>
+                        <li>Natural speaking pace and tone</li>
+                        <li>Single speaker only</li>
+                    </ul>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelUploadBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-text">
+                            <i class="fas fa-upload"></i>
+                            Upload & Process
+                        </span>
+                        <span class="btn-loader hidden">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Processing...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Voice Preview Modal -->
+    <div id="voicePreviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="previewVoiceTitle">Voice Preview</h2>
+                <button class="modal-close" id="closePreviewModal" title="Close voice preview">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="voice-preview-content">
+                <div class="voice-info">
+                    <div class="voice-avatar">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    <div class="voice-details">
+                        <h3 id="previewVoiceName">Voice Name</h3>
+                        <p id="previewVoiceType">Voice Type</p>
+                        <p id="previewVoiceDescription">Voice description</p>
+                    </div>
+                </div>
+                
+                <div class="voice-test">
+                    <h4>Test Voice</h4>
+                    <textarea id="testText" placeholder="Enter text to test the voice..." rows="3">Hello, this is a test of the voice cloning system. How does this sound?</textarea>
+                    <div class="test-controls">
+                        <button class="btn btn-primary" id="generateTestBtn">
+                            <span class="btn-text">
+                                <i class="fas fa-play"></i>
+                                Generate Test Audio
+                            </span>
+                            <span class="btn-loader hidden">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <audio id="testAudioElement" controls class="hidden">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+
+                <div class="voice-actions">
+                    <button class="btn btn-secondary" id="closePreviewBtn">Close</button>
+                    <button class="btn btn-primary" id="useVoiceBtn">
+                        <i class="fas fa-check"></i>
+                        Use This Voice
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Progress Modal -->
+    <div id="processModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Processing Voice Sample</h2>
+            </div>
+            <div class="progress-content">
+                <div class="progress-steps">
+                    <div class="progress-step active" id="step1">
+                        <div class="step-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <span>Uploading</span>
+                    </div>
+                    <div class="progress-step" id="step2">
+                        <div class="step-icon">
+                            <i class="fas fa-waveform-lines"></i>
+                        </div>
+                        <span>Analyzing Audio</span>
+                    </div>
+                    <div class="progress-step" id="step3">
+                        <div class="step-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <span>Training AI Model</span>
+                    </div>
+                    <div class="progress-step" id="step4">
+                        <div class="step-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <span>Complete</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">Uploading voice sample...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading voices...</p>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/voice-clone.js"></script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - PodcastAI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <!-- Navigation -->
+    <nav class="dashboard-nav">
+        <div class="nav-brand">
+            <i class="fas fa-podcast"></i>
+            <span>PodcastAI</span>
+        </div>
+        <div class="nav-user">
+            <a href="dashboard.html" class="btn btn-small btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+            <span id="userName">Loading...</span>
+            <button class="btn btn-small" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="settings-main">
+        <div class="container">
+            <div class="settings-header">
+                <h1><i class="fas fa-cog"></i> Settings</h1>
+                <p>Customize your PodcastAI experience</p>
+            </div>
+
+            <div class="settings-container">
+                <!-- Audio Preferences -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-volume-up"></i> Audio Preferences</h2>
+                    </div>
+                    <form id="audioForm" class="settings-form">
+                        <div class="form-group">
+                            <label for="audioQuality">Default Audio Quality</label>
+                            <select id="audioQuality" name="audioQuality" class="form-select" title="Select audio quality">
+                                <option value="low">Low Quality (64 kbps) - Faster processing</option>
+                                <option value="medium" selected>Medium Quality (128 kbps) - Balanced</option>
+                                <option value="high">High Quality (256 kbps) - Best quality</option>
+                            </select>
+                            <small>Higher quality means larger file sizes and longer processing time</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="speakingSpeed">Default Speaking Speed</label>
+                            <div class="range-input">
+                                <input type="range" id="speakingSpeed" name="speakingSpeed" min="0.5" max="2.0" step="0.1" value="1.0">
+                                <div class="range-labels">
+                                    <span>0.5x (Slow)</span>
+                                    <span id="speedValue">1.0x (Normal)</span>
+                                    <span>2.0x (Fast)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pauseDuration">Pause Duration Between Sentences</label>
+                            <select id="pauseDuration" name="pauseDuration" class="form-select" title="Select pause duration">
+                                <option value="short">Short (0.3s)</option>
+                                <option value="medium" selected>Medium (0.5s)</option>
+                                <option value="long">Long (0.8s)</option>
+                            </select>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="autoNormalize" name="autoNormalize" checked>
+                            <label for="autoNormalize">Auto-normalize audio levels</label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="btn-text">
+                                    <i class="fas fa-save"></i>
+                                    Save Audio Settings
+                                </span>
+                                <span class="btn-loader hidden">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Processing Preferences -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-cogs"></i> Processing Preferences</h2>
+                    </div>
+                    <form id="processingForm" class="settings-form">
+                        <div class="form-group">
+                            <label for="defaultVoice">Default Voice</label>
+                            <select id="defaultVoice" name="defaultVoice" class="form-select" title="Select default voice">
+                                <option value="">Select a default voice...</option>
+                                <!-- Voice options will be loaded dynamically -->
+                            </select>
+                            <small>This voice will be pre-selected when creating new podcasts</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="textOptimization">Text Optimization</label>
+                            <select id="textOptimization" name="textOptimization" class="form-select" title="Select text optimization level">
+                                <option value="none">None - Keep original text</option>
+                                <option value="basic" selected>Basic - Fix obvious issues</option>
+                                <option value="advanced">Advanced - Optimize for speech</option>
+                            </select>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="autoChapterMarks" name="autoChapterMarks" checked>
+                            <label for="autoChapterMarks">Add automatic chapter marks</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="emailNotifications" name="emailNotifications" checked>
+                            <label for="emailNotifications">Email notifications when processing completes</label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="btn-text">
+                                    <i class="fas fa-save"></i>
+                                    Save Processing Settings
+                                </span>
+                                <span class="btn-loader hidden">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Theme & Display -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-palette"></i> Theme & Display</h2>
+                    </div>
+                    <form id="themeForm" class="settings-form">
+                        <div class="form-group">
+                            <label for="theme">Theme</label>
+                            <div class="theme-options">
+                                <div class="theme-option">
+                                    <input type="radio" id="darkTheme" name="theme" value="dark" checked>
+                                    <label for="darkTheme" class="theme-label">
+                                        <div class="theme-preview dark-preview">
+                                            <div class="preview-bar"></div>
+                                            <div class="preview-content"></div>
+                                        </div>
+                                        <span>Dark Theme</span>
+                                    </label>
+                                </div>
+                                <div class="theme-option">
+                                    <input type="radio" id="lightTheme" name="theme" value="light">
+                                    <label for="lightTheme" class="theme-label">
+                                        <div class="theme-preview light-preview">
+                                            <div class="preview-bar"></div>
+                                            <div class="preview-content"></div>
+                                        </div>
+                                        <span>Light Theme</span>
+                                    </label>
+                                </div>
+                                <div class="theme-option">
+                                    <input type="radio" id="systemTheme" name="theme" value="system">
+                                    <label for="systemTheme" class="theme-label">
+                                        <div class="theme-preview system-preview">
+                                            <div class="preview-bar"></div>
+                                            <div class="preview-content"></div>
+                                        </div>
+                                        <span>System Default</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="language">Language</label>
+                            <select id="language" name="language" class="form-select" title="Select language">
+                                <option value="en" selected>English</option>
+                                <option value="es">Español</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                                <option value="it">Italiano</option>
+                                <option value="pt">Português</option>
+                            </select>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="animations" name="animations" checked>
+                            <label for="animations">Enable animations</label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="btn-text">
+                                    <i class="fas fa-save"></i>
+                                    Save Display Settings
+                                </span>
+                                <span class="btn-loader hidden">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Privacy & Security -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-shield-alt"></i> Privacy & Security</h2>
+                    </div>
+                    <form id="privacyForm" class="settings-form">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="analytics" name="analytics" checked>
+                            <label for="analytics">Allow usage analytics to improve the service</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="dataSharing" name="dataSharing">
+                            <label for="dataSharing">Share anonymous usage data for research purposes</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="autoSave" name="autoSave" checked>
+                            <label for="autoSave">Automatically save work in progress</label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dataRetention">Data Retention Period</label>
+                            <select id="dataRetention" name="dataRetention" class="form-select" title="Select data retention period">
+                                <option value="30">30 days</option>
+                                <option value="90" selected>90 days</option>
+                                <option value="365">1 year</option>
+                                <option value="forever">Keep forever</option>
+                            </select>
+                            <small>How long to keep your processed documents and podcasts</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="btn-text">
+                                    <i class="fas fa-save"></i>
+                                    Save Privacy Settings
+                                </span>
+                                <span class="btn-loader hidden">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Storage & Limits -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-database"></i> Storage & Limits</h2>
+                    </div>
+                    <div class="storage-info">
+                        <div class="storage-usage">
+                            <h4>Storage Usage</h4>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="storageProgress"></div>
+                            </div>
+                            <p><span id="usedStorage">0 MB</span> of <span id="totalStorage">1 GB</span> used</p>
+                        </div>
+
+                        <div class="limits-grid">
+                            <div class="limit-item">
+                                <h5>Documents</h5>
+                                <p><span id="documentsUsed">0</span> / <span id="documentsLimit">100</span></p>
+                            </div>
+                            <div class="limit-item">
+                                <h5>Podcasts</h5>
+                                <p><span id="podcastsUsed">0</span> / <span id="podcastsLimit">50</span></p>
+                            </div>
+                            <div class="limit-item">
+                                <h5>Voice Clones</h5>
+                                <p><span id="voicesUsed">0</span> / <span id="voicesLimit">5</span></p>
+                            </div>
+                        </div>
+
+                        <div class="upgrade-section">
+                            <h4>Need more space?</h4>
+                            <p>Upgrade to Pro for unlimited storage and advanced features</p>
+                            <button class="btn btn-primary" id="upgradeBtn">
+                                <i class="fas fa-crown"></i>
+                                Upgrade to Pro
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reset Settings -->
+                <div class="settings-section danger-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-refresh"></i> Reset Settings</h2>
+                    </div>
+                    <div class="reset-options">
+                        <div class="reset-item">
+                            <div class="reset-info">
+                                <h4>Reset All Settings</h4>
+                                <p>Reset all settings to their default values</p>
+                            </div>
+                            <button class="btn btn-danger" id="resetSettingsBtn">
+                                <i class="fas fa-refresh"></i>
+                                Reset Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="resetModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Reset Settings</h2>
+                <button class="modal-close" id="closeResetModal" title="Close reset modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="reset-confirmation">
+                <div class="reset-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Are you sure you want to reset all settings to their default values?</p>
+                    <p><strong>This action cannot be undone.</strong></p>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelResetBtn">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmResetBtn">
+                        <span class="btn-text">Reset All Settings</span>
+                        <span class="btn-loader hidden">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading settings...</p>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/settings.js"></script>
+</body>
+</html>
