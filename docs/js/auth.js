@@ -1,4 +1,7 @@
 // Authentication Manager
+// Get API configuration
+const API_BASE_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL + '/api' : 'http://localhost:5000/api';
+
 class AuthManager {
     constructor() {
         this.isSubmitting = false;
@@ -274,6 +277,102 @@ let authManager;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing authentication...');
     authManager = new AuthManager();
+});
+
+// Wait for API config to load
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure API_CONFIG is available
+    if (!window.API_CONFIG) {
+        console.error('API_CONFIG not loaded');
+        return;
+    }
+
+    const API_BASE = window.API_CONFIG.BASE_URL;
+
+    // Login form handler
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    showError(data.message || 'Login failed');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Network error. Please check if the backend server is running.');
+            }
+        });
+    }
+
+    // Register form handler
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    showError(data.message || 'Registration failed');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('Network error. Please check if the backend server is running.');
+            }
+        });
+    }
+
+    function showError(message) {
+        // Create or update error message display
+        let errorDiv = document.getElementById('error-message');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.id = 'error-message';
+            errorDiv.className = 'alert alert-danger';
+            errorDiv.style.cssText = 'margin: 10px 0; padding: 10px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24;';
+            
+            const form = document.querySelector('form');
+            if (form) {
+                form.insertBefore(errorDiv, form.firstChild);
+            }
+        }
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
 });
 
 // Export for global access
