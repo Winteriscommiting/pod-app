@@ -24,8 +24,38 @@ class AuthManager {
         
         // If user is logged in and on login page, redirect to dashboard
         if (token && (currentPath.includes('login.html') || currentPath === '/' || currentPath.includes('index.html'))) {
-            window.location.replace('/dashboard.html');
+            // Validate token before redirecting
+            this.validateToken(token).then(isValid => {
+                if (isValid) {
+                    // Use relative path for GitHub Pages compatibility
+                    window.location.replace('dashboard.html');
+                } else {
+                    // Invalid token, remove it
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                }
+            }).catch(() => {
+                // Network error or invalid token
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            });
             return;
+        }
+    }
+
+    async validateToken(token) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            return response.ok;
+        } catch (error) {
+            console.log('Token validation failed:', error);
+            return false;
         }
     }
 
@@ -119,7 +149,7 @@ class AuthManager {
 
                 // Redirect after a short delay
                 setTimeout(() => {
-                    window.location.replace('/dashboard.html');
+                    window.location.replace('dashboard.html');
                 }, 1500);
 
             } else {
@@ -209,7 +239,7 @@ class AuthManager {
 
                 // Redirect after a short delay
                 setTimeout(() => {
-                    window.location.replace('/dashboard.html');
+                    window.location.replace('dashboard.html');
                 }, 1500);
 
             } else {
@@ -254,7 +284,7 @@ class AuthManager {
     logout() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.replace('/login.html');
+        window.location.replace('login.html');
     }
 
     isAuthenticated() {
