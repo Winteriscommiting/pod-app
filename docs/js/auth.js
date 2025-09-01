@@ -22,23 +22,12 @@ class AuthManager {
         const token = localStorage.getItem('token');
         const currentPath = window.location.pathname;
         
-        // If user is logged in and on login page, redirect to dashboard
+        // Simple check - if on login page and have token, just redirect
+        // Don't validate token here to avoid loops
         if (token && (currentPath.includes('login.html') || currentPath === '/' || currentPath.includes('index.html'))) {
-            // Validate token before redirecting
-            this.validateToken(token).then(isValid => {
-                if (isValid) {
-                    // Use relative path for GitHub Pages compatibility
-                    window.location.replace('dashboard.html');
-                } else {
-                    // Invalid token, remove it
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                }
-            }).catch(() => {
-                // Network error or invalid token
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-            });
+            console.log('🔄 Token found, redirecting to dashboard...');
+            // Use relative path for GitHub Pages compatibility
+            window.location.replace('dashboard.html');
             return;
         }
     }

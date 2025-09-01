@@ -2,10 +2,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
     if (!utils.isAuthenticated()) {
-        window.location.href = '/login.html';
+        console.log('❌ Not authenticated, redirecting to login...');
+        window.location.href = 'login.html'; // Use relative path
         return;
     }
 
+    console.log('✅ Authenticated, initializing dashboard...');
     // Initialize dashboard
     initializeDashboard();
     
