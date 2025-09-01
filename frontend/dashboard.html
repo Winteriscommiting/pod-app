@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PodcastAI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="dashboard-body dark-theme">
+    <!-- Navigation -->
+    <nav class="dashboard-nav">
+        <div class="nav-brand">
+            <i class="fas fa-podcast"></i>
+            <span>PodcastAI</span>
+        </div>
+        <div class="nav-user">
+            <span id="userName">Loading...</span>
+            <button class="btn btn-small" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-menu">
+            <a href="#" class="sidebar-link active" data-tab="documents">
+                <i class="fas fa-file-alt"></i>
+                <span>Documents</span>
+            </a>
+            <a href="#" class="sidebar-link" data-tab="summaries">
+                <i class="fas fa-file-signature"></i>
+                <span>Summaries</span>
+            </a>
+            <a href="#" class="sidebar-link" data-tab="podcasts">
+                <i class="fas fa-headphones"></i>
+                <span>Podcasts</span>
+            </a>
+            <a href="#" class="sidebar-link" data-tab="voices">
+                <i class="fas fa-microphone"></i>
+                <span>Voice Cloning</span>
+            </a>
+            <a href="#" class="sidebar-link" data-tab="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Documents Tab -->
+        <div id="documentsTab" class="tab-content active">
+            <div class="tab-header">
+                <h1>Documents</h1>
+                <button class="btn btn-primary" id="uploadDocBtn">
+                    <i class="fas fa-upload"></i>
+                    Upload Document
+                </button>
+            </div>
+
+            <div class="documents-grid" id="documentsGrid">
+                <div class="empty-state">
+                    <i class="fas fa-file-upload"></i>
+                    <h3>No documents yet</h3>
+                    <p>Upload your first document to get started</p>
+                    <button class="btn btn-primary" id="uploadDocBtnEmpty">
+                        <i class="fas fa-upload"></i>
+                        Upload Document
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summaries Tab -->
+        <div id="summariesTab" class="tab-content">
+            <div class="tab-header">
+                <h1>Document Summaries</h1>
+                <div class="tab-controls">
+                    <select id="summaryFilter" class="form-select" title="Filter summaries by status" aria-label="Filter summaries by status">
+                        <option value="">All Documents</option>
+                        <option value="completed">Summarized</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                    <button class="btn btn-secondary" id="refreshSummariesBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summarization Stats -->
+            <div class="stats-cards" id="summarizationStats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalDocumentsCount">0</h3>
+                        <p>Total Documents</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="summarizedCount">0</h3>
+                        <p>Summarized</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-compress-arrows-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="avgCompressionRatio">0%</h3>
+                        <p>Avg Compression</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalReadingTime">0 min</h3>
+                        <p>Total Reading Time</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summaries-grid" id="summariesGrid">
+                <div class="empty-state">
+                    <i class="fas fa-file-signature"></i>
+                    <h3>No summaries yet</h3>
+                    <p>Upload documents to generate AI summaries</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Podcasts Tab -->
+        <div id="podcastsTab" class="tab-content">
+            <div class="tab-header">
+                <h1>Podcasts</h1>
+                <button class="btn btn-primary" id="createPodcastBtn">
+                    <i class="fas fa-plus"></i>
+                    Create Podcast
+                </button>
+            </div>
+
+            <div class="podcasts-grid" id="podcastsGrid">
+                <div class="empty-state">
+                    <i class="fas fa-headphones"></i>
+                    <h3>No podcasts yet</h3>
+                    <p>Create your first podcast from a document</p>
+                    <button class="btn btn-primary" id="createPodcastBtnEmpty">
+                        <i class="fas fa-plus"></i>
+                        Create Podcast
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voices Tab -->
+        <div id="voicesTab" class="tab-content">
+            <div class="tab-header">
+                <h1>Voice Cloning</h1>
+                <button class="btn btn-primary" id="uploadVoiceBtn">
+                    <i class="fas fa-microphone"></i>
+                    Upload Voice Sample
+                </button>
+            </div>
+
+            <div class="voices-section">
+                <div class="voice-category">
+                    <h3>AI Voices</h3>
+                    <div class="voices-grid" id="aiVoicesGrid">
+                        <!-- AI voices will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="voice-category">
+                    <h3>Your Cloned Voices</h3>
+                    <div class="voices-grid" id="clonedVoicesGrid">
+                        <div class="empty-state">
+                            <i class="fas fa-microphone-alt"></i>
+                            <h4>No voice samples yet</h4>
+                            <p>Upload a voice sample to create your cloned voice</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settingsTab" class="tab-content">
+            <div class="tab-header">
+                <h1>Settings</h1>
+            </div>
+
+            <div class="settings-content">
+                <div class="settings-section">
+                    <h3>Audio Preferences</h3>
+                    <div class="form-group">
+                        <label for="audioQuality">Default Audio Quality</label>
+                        <select id="audioQuality" class="form-select">
+                            <option value="low">Low (Faster)</option>
+                            <option value="medium" selected>Medium (Balanced)</option>
+                            <option value="high">High (Best Quality)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Account Information</h3>
+                    <div class="account-info">
+                        <div class="info-item">
+                            <label>Username</label>
+                            <span id="settingsUsername">Loading...</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Email</label>
+                            <span id="settingsEmail">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Upload Document Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Document</h2>
+                <button class="modal-close" id="closeUploadModal" title="Close modal" aria-label="Close upload document modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="uploadForm" class="modal-form">
+                <div class="form-group">
+                    <label for="documentFile">Select Document</label>
+                    <div class="file-upload">
+                        <input type="file" id="documentFile" name="document" accept=".pdf,.docx,.txt" required>
+                        <div class="file-upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click to select or drag and drop</p>
+                            <span>PDF, DOCX, TXT (Max 10MB)</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    <span class="btn-text">Upload & Process</span>
+                    <span class="btn-loader hidden">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Podcast Modal -->
+    <div id="podcastModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Podcast</h2>
+                <button class="modal-close" id="closePodcastModal" title="Close modal" aria-label="Close create podcast modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="podcastForm" class="modal-form">
+                <div class="form-group">
+                    <label for="podcastDocument">Select Document</label>
+                    <select id="podcastDocument" name="documentId" required>
+                        <option value="">Choose a document...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="podcastTitle">Podcast Title</label>
+                    <input type="text" id="podcastTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="podcastDescription">Description (Optional)</label>
+                    <textarea id="podcastDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="voiceType">Voice Type</label>
+                    <select id="voiceType" name="voiceType" required>
+                        <option value="">Select voice type...</option>
+                        <option value="ai">AI Voice</option>
+                        <option value="cloned">Cloned Voice</option>
+                    </select>
+                </div>
+                <div class="form-group" id="voiceSelectionGroup">
+                    <label for="voiceSelection">Select Voice</label>
+                    <select id="voiceSelection" name="voiceId" required>
+                        <option value="">Choose a voice...</option>
+                    </select>
+                    <button type="button" class="btn btn-small btn-secondary" id="testVoiceBtn">
+                        <i class="fas fa-play"></i>
+                        Test Voice
+                    </button>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    <span class="btn-text">Generate Podcast</span>
+                    <span class="btn-loader hidden">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Voice Modal -->
+    <div id="voiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Voice Sample</h2>
+                <button class="modal-close" id="closeVoiceModal" title="Close modal" aria-label="Close upload voice sample modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="voiceForm" class="modal-form">
+                <div class="form-group">
+                    <label for="voiceFile">Voice Sample</label>
+                    <div class="file-upload">
+                        <input type="file" id="voiceFile" name="voiceSample" accept=".wav,.mp3,.m4a,.flac" required>
+                        <div class="file-upload-area">
+                            <i class="fas fa-microphone"></i>
+                            <p>Upload your voice sample</p>
+                            <span>WAV, MP3, M4A, FLAC (Max 50MB)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="voiceName">Voice Name</label>
+                    <input type="text" id="voiceName" name="name" placeholder="My Voice" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    <span class="btn-text">Upload & Process</span>
+                    <span class="btn-loader hidden">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Audio Player Modal -->
+    <div id="audioPlayerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="audioPlayerTitle">Audio Player</h2>
+                <button class="modal-close" id="closeAudioPlayer" title="Close audio player" aria-label="Close audio player modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="audio-player">
+                <audio id="audioElement" controls preload="metadata">
+                    Your browser does not support the audio element.
+                </audio>
+                <div class="audio-info" id="audioInfo">
+                    <!-- Audio information will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/browserTTS.js"></script>
+    <script src="js/summarization.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

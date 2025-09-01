@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - PodcastAI</title>
+    <meta name="description" content="Get in touch with the PodcastAI team. We're here to help with questions, feedback, and support.">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="index.html">
+                    <i class="fas fa-podcast"></i>
+                    <span>PodcastAI</span>
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="features.html">Features</a>
+                <a href="contact.html" class="active">Contact</a>
+            </div>
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="page-hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Get in Touch</h1>
+                    <p>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact">
+            <div class="container">
+                <div class="contact-grid">
+                    <!-- Contact Form -->
+                    <div class="contact-form">
+                        <h2>Send us a Message</h2>
+                        <p>Whether you have questions, feedback, or need help, we're here for you.</p>
+                        
+                        <form id="contactForm">
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" id="name" name="name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="subject">Subject</label>
+                                <select id="subject" name="subject" required>
+                                    <option value="">Select a topic</option>
+                                    <option value="general">General Question</option>
+                                    <option value="technical">Technical Support</option>
+                                    <option value="feature">Feature Request</option>
+                                    <option value="bug">Bug Report</option>
+                                    <option value="feedback">Feedback</option>
+                                    <option value="partnership">Partnership</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea id="message" name="message" rows="6" required placeholder="Tell us how we can help you..."></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <i class="fas fa-paper-plane"></i>
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="contact-info">
+                        <h3>Other Ways to Reach Us</h3>
+                        
+                        <div class="contact-methods">
+                            <div class="contact-method">
+                                <div class="contact-icon">
+                                    <i class="fab fa-github"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4>GitHub</h4>
+                                    <p>Open source contributions, bug reports, and feature requests</p>
+                                    <a href="#" class="contact-link">Visit our repository</a>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-method">
+                                <div class="contact-icon">
+                                    <i class="fab fa-discord"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4>Community Discord</h4>
+                                    <p>Join our community for real-time support and discussions</p>
+                                    <a href="#" class="contact-link">Join Discord</a>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-method">
+                                <div class="contact-icon">
+                                    <i class="fab fa-twitter"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4>Twitter</h4>
+                                    <p>Follow us for updates, tips, and community highlights</p>
+                                    <a href="#" class="contact-link">@PodcastAI</a>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-method">
+                                <div class="contact-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4>Email</h4>
+                                    <p>For direct communication and support</p>
+                                    <a href="mailto:hello@podcastai.app" class="contact-link">hello@podcastai.app</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="response-time">
+                            <div class="response-badge">
+                                <i class="fas fa-clock"></i>
+                                <div>
+                                    <strong>Response Time</strong>
+                                    <p>We typically respond within 24 hours</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Frequently Asked Questions</h2>
+                    <p>Quick answers to common questions</p>
+                </div>
+                
+                <div class="faq-grid">
+                    <div class="faq-category">
+                        <h3>Getting Started</h3>
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>How do I create my first podcast?</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>Simply visit our homepage, upload your document (PDF, DOCX, or TXT), choose a voice, and click generate. Your podcast will be ready to download in seconds!</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>Do I need to create an account?</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>No! You can use our basic features without any registration. Creating an account is optional and provides additional features like saving your podcasts and accessing your history.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-category">
+                        <h3>Technical</h3>
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>What file formats are supported?</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>We support PDF files, Microsoft Word documents (.docx), and plain text files (.txt). Our system automatically extracts and processes the text content.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>Why is the service completely free?</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>We believe in democratizing access to content creation tools. By using browser-based synthesis and open-source technologies, we can provide high-quality service without recurring costs.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact CTA -->
+        <section class="contact-cta">
+            <div class="container">
+                <div class="cta-content">
+                    <h2>Still Have Questions?</h2>
+                    <p>Our team is here to help you get the most out of PodcastAI</p>
+                    <div class="cta-buttons">
+                        <a href="#contactForm" class="btn btn-primary btn-large">
+                            <i class="fas fa-envelope"></i>
+                            Send Message
+                        </a>
+                        <a href="login.html" class="btn btn-secondary btn-large">
+                            <i class="fas fa-rocket"></i>
+                            Try PodcastAI
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <i class="fas fa-podcast"></i>
+                        <span>PodcastAI</span>
+                    </div>
+                    <p>Transform your documents into engaging podcasts with completely free AI-powered voice generation.</p>
+                    <div class="footer-social">
+                        <a href="#" title="Twitter" aria-label="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" title="GitHub" aria-label="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" title="Discord" aria-label="Discord">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <a href="index.html">Home</a>
+                        <a href="features.html">Features</a>
+                        <a href="dashboard.html">Dashboard</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <a href="about.html">About</a>
+                        <a href="contact.html">Contact</a>
+                        <a href="#" onclick="alert('Coming Soon!')">Blog</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Support</h4>
+                        <a href="#" onclick="alert('Help Center Coming Soon!')">Help Center</a>
+                        <a href="contact.html">Contact Us</a>
+                        <a href="#" onclick="alert('Community Coming Soon!')">Community</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <p>&copy; 2025 PodcastAI. All rights reserved. Made with ❤️ for the community.</p>
+                    <div class="footer-badges">
+                        <span class="footer-badge">
+                            <i class="fas fa-leaf"></i>
+                            100% Free
+                        </span>
+                        <span class="footer-badge">
+                            <i class="fas fa-code"></i>
+                            Open Source
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Contact form functionality
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            // Show success message
+            alert('Thank you for your message! We\'ll get back to you as soon as possible.');
+            
+            // Reset form
+            this.reset();
+        });
+
+        // FAQ functionality
+        document.querySelectorAll('.faq-item').forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                
+                // Close all other FAQ items
+                document.querySelectorAll('.faq-item').forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.classList.remove('active');
+                    }
+                });
+                
+                // Toggle current item
+                if (isActive) {
+                    item.classList.remove('active');
+                } else {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href === '#') return;
+                
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
