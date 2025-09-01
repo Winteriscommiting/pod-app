@@ -9,8 +9,8 @@ class AuthManager {
     }
 
     init() {
-        // Check if user is already logged in
-        this.checkAuthentication();
+        // DON'T automatically check authentication - this causes loops
+        // Only check when explicitly needed
         
         // Initialize forms
         this.initializeLoginForm();
@@ -19,17 +19,19 @@ class AuthManager {
     }
 
     checkAuthentication() {
+        // This function is now only called manually, not automatically
         const token = localStorage.getItem('token');
         const currentPath = window.location.pathname;
         
+        console.log('🔍 Manual auth check - Path:', currentPath, 'Token:', !!token);
+        
         // Simple check - if on login page and have token, just redirect
-        // Don't validate token here to avoid loops
-        if (token && (currentPath.includes('login.html') || currentPath === '/' || currentPath.includes('index.html'))) {
+        if (token && (currentPath.includes('login.html') || currentPath.includes('index.html'))) {
             console.log('🔄 Token found, redirecting to dashboard...');
-            // Use relative path for GitHub Pages compatibility
             window.location.replace('dashboard.html');
-            return;
+            return true;
         }
+        return false;
     }
 
     async validateToken(token) {

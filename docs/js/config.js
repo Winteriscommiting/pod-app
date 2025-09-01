@@ -26,12 +26,13 @@ const API_CONFIG = {
 // Make it globally available
 window.API_CONFIG = API_CONFIG;
 
-// Debug logging
+// Enhanced debug logging
 console.log('🔧 Environment:', window.location.hostname);
 console.log('📍 Backend URL:', API_CONFIG.BASE_URL);
 console.log('🌐 Frontend URL:', window.location.href);
+console.log('📂 Current Path:', window.location.pathname);
 
-// Test backend connectivity
+// Test backend connectivity with better error handling
 setTimeout(() => {
     fetch(API_CONFIG.BASE_URL + '/api/health')
         .then(response => {
@@ -49,21 +50,24 @@ setTimeout(() => {
             console.log('❌ Backend connection failed:', error.message);
             console.log('💡 Make sure your backend is running at', API_CONFIG.BASE_URL);
             
-            // Show user-friendly error message
-            const errorDiv = document.createElement('div');
-            errorDiv.style.cssText = `
-                position: fixed; top: 10px; right: 10px; z-index: 9999;
-                background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24;
-                padding: 10px; border-radius: 5px; max-width: 300px;
-                font-family: Arial, sans-serif; font-size: 14px;
-            `;
-            errorDiv.innerHTML = `
-                <strong>Backend Connection Error</strong><br>
-                Cannot connect to backend server.<br>
-                <small>Make sure the backend is running on port 5000</small>
-            `;
-            document.body.appendChild(errorDiv);
-            
-            setTimeout(() => errorDiv.remove(), 10000);
+            // Only show error on login page, not dashboard
+            if (window.location.pathname.includes('login.html')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = `
+                    position: fixed; top: 10px; right: 10px; z-index: 9999;
+                    background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24;
+                    padding: 10px; border-radius: 5px; max-width: 300px;
+                    font-family: Arial, sans-serif; font-size: 14px;
+                `;
+                errorDiv.innerHTML = `
+                    <strong>Backend Connection Error</strong><br>
+                    Cannot connect to backend server.<br>
+                    <small>Make sure the backend is running on port 5000</small>
+                    <button onclick="this.parentElement.remove()" style="float: right; background: none; border: none; font-size: 16px;">&times;</button>
+                `;
+                document.body.appendChild(errorDiv);
+                
+                setTimeout(() => errorDiv.remove(), 15000);
+            }
         });
 }, 1000);

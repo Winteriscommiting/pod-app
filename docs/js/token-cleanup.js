@@ -1,7 +1,5 @@
-// Clear any potentially invalid tokens on page load
+// Handle authentication clearing and debugging
 document.addEventListener('DOMContentLoaded', function() {
-    // Clear localStorage if we're on the login page and there's a token
-    // This helps prevent redirect loops
     const currentPath = window.location.pathname;
     
     // If URL has ?clearauth parameter, clear all auth data
@@ -10,15 +8,33 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('🧹 Clearing authentication data...');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        // Remove the parameter from URL
         window.history.replaceState({}, document.title, window.location.pathname);
+        alert('Authentication data cleared! You can now test login.');
         return;
     }
     
-    if (currentPath.includes('login.html') || currentPath.includes('index.html') || currentPath === '/') {
-        const token = localStorage.getItem('token');
-        if (token) {
-            console.log('🔄 Token found on login page, will redirect via auth.js');
-        }
+    // Add debug info
+    console.log('📍 Current page:', currentPath);
+    console.log('🔑 Token exists:', !!localStorage.getItem('token'));
+    
+    // Add a manual auth check button for debugging
+    if (currentPath.includes('login.html')) {
+        setTimeout(() => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                const debugDiv = document.createElement('div');
+                debugDiv.style.cssText = `
+                    position: fixed; top: 10px; left: 10px; z-index: 9999;
+                    background: #fff3cd; border: 1px solid #ffeaa7; color: #856404;
+                    padding: 10px; border-radius: 5px; font-size: 12px;
+                `;
+                debugDiv.innerHTML = `
+                    <strong>Debug:</strong> Token found!<br>
+                    <button onclick="localStorage.clear(); location.reload();" style="margin-top: 5px;">Clear & Reload</button>
+                    <button onclick="window.location.href='dashboard.html'" style="margin-top: 5px;">Go to Dashboard</button>
+                `;
+                document.body.appendChild(debugDiv);
+            }
+        }, 1000);
     }
 });
