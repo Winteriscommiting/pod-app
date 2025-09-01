@@ -118,9 +118,13 @@ class AuthManager {
             if (btnText) btnText.style.display = 'none';
             if (btnLoader) btnLoader.style.display = 'inline';
 
-            console.log('Attempting login for:', email);
+            console.log('🔑 Attempting login for:', email);
 
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            // Get the API URL dynamically to ensure it's available
+            const apiBaseUrl = window.API_CONFIG ? window.API_CONFIG.BASE_URL + '/api' : 'http://localhost:5000/api';
+            console.log('📡 Using API URL:', apiBaseUrl);
+
+            const response = await fetch(`${apiBaseUrl}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -129,28 +133,28 @@ class AuthManager {
             });
 
             const data = await response.json();
-            console.log('Login response:', data);
+            console.log('📝 Login response:', data);
 
             if (response.ok && data.success) {
                 // Store authentication data
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
+                console.log('✅ Login successful! Redirecting to dashboard...');
                 utils.showToast('Login successful! Redirecting...', 'success');
 
-                // Redirect after a short delay
-                setTimeout(() => {
-                    window.location.replace('dashboard.html');
-                }, 1500);
+                // Immediate redirect without delay to prevent issues
+                window.location.href = 'dashboard.html';
 
             } else {
+                console.log('❌ Login failed:', data.message);
                 utils.showToast(data.message || 'Login failed. Please check your credentials.', 'error');
                 // Clear password field on error
                 form.password.value = '';
             }
 
         } catch (error) {
-            console.error('Login error:', error);
+            console.error('❌ Login error:', error);
             utils.showToast('Network error. Please check your connection and try again.', 'error');
             // Clear password field on error
             form.password.value = '';
