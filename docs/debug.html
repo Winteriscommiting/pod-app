@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Login - PodcastAI</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .debug-container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .debug-info { background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .button:hover { background: #0056b3; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 Login Debug Page</h1>
+        
+        <div class="debug-info">
+            <h3>Current Status:</h3>
+            <p><strong>URL:</strong> <span id="current-url"></span></p>
+            <p><strong>Path:</strong> <span id="current-path"></span></p>
+            <p><strong>Token Exists:</strong> <span id="token-status"></span></p>
+            <p><strong>User Data:</strong> <span id="user-data"></span></p>
+        </div>
+
+        <div class="debug-info">
+            <h3>Actions:</h3>
+            <button class="button" onclick="clearAuth()">Clear Auth Data</button>
+            <button class="button" onclick="testLogin()">Test Login</button>
+            <button class="button" onclick="goDashboard()">Go to Dashboard</button>
+            <button class="button" onclick="goLogin()">Go to Login</button>
+            <button class="button" onclick="testBackend()">Test Backend</button>
+        </div>
+
+        <div class="debug-info">
+            <h3>Console Output:</h3>
+            <pre id="console-output"></pre>
+        </div>
+
+        <div class="debug-info">
+            <h3>Quick Login Test:</h3>
+            <input type="email" id="test-email" placeholder="Email" value="test@example.com" style="width: 200px; padding: 8px;">
+            <input type="password" id="test-password" placeholder="Password" value="password123" style="width: 200px; padding: 8px;">
+            <button class="button" onclick="quickLogin()">Quick Login</button>
+        </div>
+    </div>
+
+    <script>
+        let output = '';
+        function log(message) {
+            output += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            document.getElementById('console-output').textContent = output;
+            console.log(message);
+        }
+
+        function updateStatus() {
+            document.getElementById('current-url').textContent = window.location.href;
+            document.getElementById('current-path').textContent = window.location.pathname;
+            document.getElementById('token-status').textContent = localStorage.getItem('token') ? 'YES' : 'NO';
+            document.getElementById('user-data').textContent = localStorage.getItem('user') || 'None';
+        }
+
+        function clearAuth() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            log('Cleared authentication data');
+            updateStatus();
+        }
+
+        function testLogin() {
+            window.location.href = 'login.html';
+        }
+
+        function goDashboard() {
+            window.location.href = 'dashboard.html';
+        }
+
+        function goLogin() {
+            window.location.href = 'login.html';
+        }
+
+        function testBackend() {
+            log('Testing backend connection...');
+            fetch('http://localhost:5000/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    log('✅ Backend connected: ' + JSON.stringify(data));
+                })
+                .catch(error => {
+                    log('❌ Backend error: ' + error.message);
+                });
+        }
+
+        async function quickLogin() {
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+            
+            log('Attempting quick login...');
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    localStorage.setItem('token', data.token);
+                    if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+                    log('✅ Login successful! Token saved.');
+                    updateStatus();
+                } else {
+                    log('❌ Login failed: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                log('❌ Login error: ' + error.message);
+            }
+        }
+
+        // Initialize
+        updateStatus();
+        log('Debug page loaded');
+    </script>
+</body>
+</html>
