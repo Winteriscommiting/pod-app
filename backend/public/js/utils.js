@@ -171,7 +171,7 @@ const utils = {
     showModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
-            modal.classList.add('active');
+            modal.classList.add('show');
             document.body.style.overflow = 'hidden';
         }
     },
@@ -180,7 +180,7 @@ const utils = {
     hideModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
-            modal.classList.remove('active');
+            modal.classList.remove('show');
             document.body.style.overflow = '';
         }
     },

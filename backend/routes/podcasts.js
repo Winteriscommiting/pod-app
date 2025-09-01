@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   createPodcast,
+  createPodcastFromSummary,
   getPodcasts,
   getPodcastById,
   updatePodcast,
@@ -16,6 +17,11 @@ const auth = require('../middleware/auth');
 // @desc    Create new podcast
 // @access  Private
 router.post('/', auth, createPodcast);
+
+// @route   POST /api/podcasts/from-summary/:documentId
+// @desc    Create podcast from document summary
+// @access  Private
+router.post('/from-summary/:documentId', auth, createPodcastFromSummary);
 
 // @route   GET /api/podcasts
 // @desc    Get user's podcasts
@@ -51,6 +57,11 @@ router.get('/:id/progress', auth, getPodcastProgress);
 // @desc    Download podcast audio
 // @access  Private
 router.get('/:id/download', auth, downloadPodcast);
+
+// @route   GET /api/podcasts/:id/stream
+// @desc    Stream podcast audio
+// @access  Private
+router.get('/:id/stream', auth, require('../controllers/streamController').streamPodcast);
 
 // @route   DELETE /api/podcasts/:id
 // @desc    Delete podcast

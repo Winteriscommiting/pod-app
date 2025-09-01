@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.production
+*.log
+uploads/
+data-export.json
+export-data.js
+.DS_Store
+Thumbs.db

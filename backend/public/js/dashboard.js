@@ -30,6 +30,11 @@ function initializeDashboard() {
         document.getElementById('settingsEmail').textContent = user.email;
     }
     
+    // Initialize summarization manager if available
+    if (typeof SummarizationManager !== 'undefined') {
+        window.summarizationManager = new SummarizationManager();
+    }
+    
     // Set up tab navigation
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
     sidebarLinks.forEach(link => {
@@ -101,6 +106,11 @@ function switchTab(tabName) {
         case 'podcasts':
             loadPodcasts();
             break;
+        case 'summaries':
+            if (window.summarizationManager) {
+                window.summarizationManager.loadSummaries();
+            }
+            break;
         case 'voices':
             loadVoices();
             break;
@@ -133,6 +143,9 @@ async function loadDocuments() {
         utils.showToast('Error loading documents', 'error');
     }
 }
+
+// Make loadDocuments available globally
+window.loadDocuments = loadDocuments;
 
 function renderDocuments() {
     const grid = document.getElementById('documentsGrid');
@@ -190,7 +203,8 @@ function renderDocuments() {
 async function loadPodcasts() {
     try {
         const response = await utils.apiRequest('/podcasts');
-        podcasts = response.podcasts || [];
+        podcasts = response.data || [];
+        console.log('Loaded podcasts:', podcasts.length);
         renderPodcasts();
     } catch (error) {
         console.error('Error loading podcasts:', error);
@@ -221,25 +235,32 @@ function renderPodcasts() {
             <div class="card-header">
                 <i class="fas fa-headphones card-icon"></i>
                 <h3 class="card-title">${utils.truncateText(podcast.title, 30)}</h3>
+                ${podcast.contentType === 'summary' ? '<span class="content-badge">From Summary</span>' : ''}
             </div>
             <div class="card-meta">
                 <span>${podcast.documentId?.originalName || 'Document'}</span>
-                <span class="status-badge status-${podcast.generationStatus}">
-                    ${podcast.generationStatus}
+                <span class="status-badge status-${podcast.status || podcast.generationStatus}">
+                    ${getStatusDisplay(podcast.status || podcast.generationStatus)}
                 </span>
             </div>
             <div class="card-meta">
-                <span>${podcast.metadata?.wordCount || 0} words</span>
+                <span>${podcast.wordCount || podcast.metadata?.wordCount || 0} words</span>
                 <span>${utils.formatDate(podcast.createdAt)}</span>
             </div>
-            ${podcast.audioFile ? `
+            ${podcast.progress !== undefined ? `
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${podcast.progress}%"></div>
+                    <span class="progress-text">${podcast.progress}%</span>
+                </div>
+            ` : ''}
+            ${podcast.estimatedDuration ? `
                 <div class="card-meta">
-                    <span>Duration: ${utils.formatDuration(podcast.audioFile.duration || 0)}</span>
-                    <span>Size: ${utils.formatFileSize(podcast.audioFile.fileSize || 0)}</span>
+                    <span>Est. Duration: ${utils.formatDuration(podcast.estimatedDuration)}</span>
+                    ${podcast.actualDuration ? `<span>Actual: ${utils.formatDuration(podcast.actualDuration)}</span>` : ''}
                 </div>
             ` : ''}
             <div class="card-actions">
-                ${podcast.generationStatus === 'completed' && podcast.audioFile ? `
+                ${(podcast.status === 'completed' || podcast.generationStatus === 'completed') && (podcast.audioUrl || podcast.audioFile) ? `
                     <button class="btn btn-small btn-primary" onclick="playPodcast('${podcast._id}')">
                         <i class="fas fa-play"></i>
                         Play
@@ -248,13 +269,41 @@ function renderPodcasts() {
                         <i class="fas fa-download"></i>
                         Download
                     </button>
+                ` : podcast.status === 'ready_for_browser' ? `
+                    <button class="btn btn-small btn-primary" onclick="playBrowserTTS('${podcast._id}')">
+                        <i class="fas fa-volume-up"></i>
+                        Play TTS
+                    </button>
+                ` : ''}
+                ${podcast.status === 'generating' ? `
+                    <button class="btn btn-small btn-secondary" onclick="checkPodcastProgress('${podcast._id}')">
+                        <i class="fas fa-sync fa-spin"></i>
+                        Generating...
+                    </button>
                 ` : ''}
                 <button class="btn btn-small" onclick="deletePodcast('${podcast._id}')" style="color: #ef4444;">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
+            ${podcast.errorMessage ? `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    ${podcast.errorMessage}
+                </div>
+            ` : ''}
         </div>
     `).join('');
+}
+
+function getStatusDisplay(status) {
+    const statusMap = {
+        'pending': 'Pending',
+        'generating': 'Generating',
+        'completed': 'Completed',
+        'failed': 'Failed',
+        'ready_for_browser': 'Ready to Play'
+    };
+    return statusMap[status] || status;
 }
 
 async function loadVoices() {
@@ -371,6 +420,17 @@ async function handleDocumentUpload(e) {
             utils.hideModal('uploadModal');
             e.target.reset();
             await loadDocuments();
+            
+            // Trigger summarization if manager is available
+            if (window.summarizationManager && response.data && response.data.id) {
+                try {
+                    await window.summarizationManager.startSummarization(response.data.id);
+                    utils.showToast('Document summarization started', 'info');
+                } catch (error) {
+                    console.error('Summarization error:', error);
+                    // Don't show error toast since document upload was successful
+                }
+            }
         }
     } catch (error) {
         console.error('Upload error:', error);
@@ -687,19 +747,142 @@ async function deleteDocument(documentId) {
 
 async function playPodcast(podcastId) {
     const podcast = podcasts.find(p => p._id === podcastId);
-    if (!podcast || !podcast.audioFile) return;
+    if (!podcast) return;
     
-    playAudio(`/api/podcasts/${podcastId}/stream`, podcast.title);
+    // Handle different audio sources based on our new schema
+    if ((podcast.status === 'completed' || podcast.generationStatus === 'completed') && 
+        (podcast.audioUrl || podcast.audioFile)) {
+        // Play from file/URL
+        const audioUrl = podcast.audioUrl || `/api/podcasts/${podcastId}/stream`;
+        playAudio(audioUrl, podcast.title);
+    } else if (podcast.status === 'ready_for_browser') {
+        // Use browser TTS
+        playBrowserTTS(podcastId);
+    }
+}
+
+function playBrowserTTS(podcastId) {
+    console.log('playBrowserTTS called with podcastId:', podcastId);
+    const podcast = podcasts.find(p => p._id === podcastId);
+    console.log('Found podcast:', podcast);
+    
+    if (!podcast) {
+        console.error('Podcast not found');
+        return;
+    }
+    
+    // Stop any current speech
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+    }
+    
+    // Get content from different possible sources
+    let content = podcast.formattedContent || podcast.content;
+    console.log('Direct content:', !!content);
+    
+    // If no direct content, try to parse audioInstructions
+    if (!content && podcast.audioInstructions) {
+        console.log('Trying audioInstructions:', podcast.audioInstructions);
+        try {
+            const instructions = typeof podcast.audioInstructions === 'string' 
+                ? JSON.parse(podcast.audioInstructions) 
+                : podcast.audioInstructions;
+            content = instructions.text;
+            console.log('Extracted content from audioInstructions:', !!content);
+        } catch (e) {
+            console.error('Error parsing audioInstructions:', e);
+        }
+    }
+    
+    if (!content) {
+        console.error('No content available');
+        utils.showToast('No content available for playback', 'error');
+        return;
+    }
+    
+    console.log('Content length:', content.length);
+    console.log('Content preview:', content.substring(0, 100));
+    
+    // Create speech utterance
+    const utterance = new SpeechSynthesisUtterance(content);
+    
+    // Apply voice settings if available
+    if (podcast.voiceSettings) {
+        if (podcast.voiceSettings.rate) utterance.rate = podcast.voiceSettings.rate;
+        if (podcast.voiceSettings.pitch) utterance.pitch = podcast.voiceSettings.pitch;
+        if (podcast.voiceSettings.volume) utterance.volume = podcast.voiceSettings.volume;
+        
+        // Find and set voice if specified
+        if (podcast.voiceSettings.voice) {
+            const voices = window.speechSynthesis.getVoices();
+            const selectedVoice = voices.find(voice => 
+                voice.name === podcast.voiceSettings.voice || 
+                voice.lang.includes(podcast.voiceSettings.voice)
+            );
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+        }
+    }
+    
+    // Set up event handlers
+    utterance.onstart = () => {
+        utils.showToast('Podcast playback started', 'success');
+    };
+    
+    utterance.onend = () => {
+        utils.showToast('Podcast playback completed', 'success');
+    };
+    
+    utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        utils.showToast('Error during playback', 'error');
+    };
+    
+    // Start speaking
+    window.speechSynthesis.speak(utterance);
+}
+
+function checkPodcastProgress(podcastId) {
+    fetch(`/api/podcasts/${podcastId}/progress`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the podcast in our local array
+                const podcastIndex = podcasts.findIndex(p => p._id === podcastId);
+                if (podcastIndex !== -1) {
+                    podcasts[podcastIndex] = { ...podcasts[podcastIndex], ...data.podcast };
+                    renderPodcasts();
+                }
+                
+                // If still generating, check again in a few seconds
+                if (data.podcast.status === 'generating') {
+                    setTimeout(() => checkPodcastProgress(podcastId), 3000);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error checking progress:', error);
+        });
 }
 
 async function downloadPodcast(podcastId) {
     try {
-        const link = document.createElement('a');
-        link.href = `/api/podcasts/${podcastId}/download`;
-        link.download = '';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const podcast = podcasts.find(p => p._id === podcastId);
+        if (!podcast) return;
+        
+        // Check if we have an audio file to download
+        if ((podcast.status === 'completed' || podcast.generationStatus === 'completed') && 
+            (podcast.audioUrl || podcast.audioFile)) {
+            const link = document.createElement('a');
+            link.href = podcast.audioUrl || `/api/podcasts/${podcastId}/download`;
+            link.download = `${podcast.title}.mp3`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            utils.showToast('No audio file available for download', 'error');
+        }
     } catch (error) {
         console.error('Download error:', error);
         utils.showToast('Error downloading podcast', 'error');
@@ -780,3 +963,40 @@ function playAudio(audioUrl, title) {
     
     utils.showModal('audioPlayerModal');
 }
+
+// Delete document function
+async function deleteDocument(documentId) {
+    if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await utils.apiRequest(`/api/documents/${documentId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.success) {
+            utils.showToast('Document deleted successfully', 'success');
+            
+            // Remove from documents array
+            documents = documents.filter(doc => doc._id !== documentId);
+            
+            // Re-render documents
+            renderDocuments();
+            
+            // Refresh summaries if on summaries tab
+            if (currentTab === 'summaries' && window.summarizationManager) {
+                window.summarizationManager.loadSummaries();
+                window.summarizationManager.loadSummarizationStats();
+            }
+        } else {
+            utils.showToast('Failed to delete document', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting document:', error);
+        utils.showToast('Error deleting document', 'error');
+    }
+}
+
+// Make function available globally
+window.deleteDocument = deleteDocument;

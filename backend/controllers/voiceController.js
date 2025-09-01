@@ -2,6 +2,7 @@ const User = require('../models/User');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const textToSpeechService = require('../services/textToSpeech');
 
 // Configure multer for voice sample uploads
 const storage = multer.diskStorage({
@@ -138,64 +139,46 @@ exports.deleteVoiceSample = async (req, res) => {
 
 exports.getAvailableVoices = async (req, res) => {
   try {
-    // Return available AI voices and user's voice samples
+    // Get available AI voices from TTS service and user's voice samples
     const user = await User.findById(req.user.id);
     const userVoices = user.voiceSamples || [];
 
-    const aiVoices = [
-      {
-        id: 'voice-1',
-        name: 'Sarah',
-        description: 'Female, Professional',
-        type: 'ai',
-        language: 'en-US',
-        gender: 'female'
-      },
-      {
-        id: 'voice-2',
-        name: 'Michael',
-        description: 'Male, Narrator',
-        type: 'ai',
-        language: 'en-US',
-        gender: 'male'
-      },
-      {
-        id: 'voice-3',
-        name: 'Emma',
-        description: 'Female, Conversational',
-        type: 'ai',
-        language: 'en-US',
-        gender: 'female'
-      },
-      {
-        id: 'voice-4',
-        name: 'David',
-        description: 'Male, Authoritative',
-        type: 'ai',
-        language: 'en-US',
-        gender: 'male'
-      }
-    ];
+    // Get AI voices from the TTS service
+    const aiVoices = await textToSpeechService.getAvailableVoices();
+    const formattedAiVoices = aiVoices.map(voice => ({
+      ...voice,
+      type: 'ai',
+      description: `${voice.gender || 'Unknown'}, ${voice.name}`
+    }));
 
-    const customVoices = userVoices.map(voice => ({
+    // Format user voices
+    const formattedUserVoices = userVoices.map(voice => ({
       id: voice.id,
       name: voice.name,
-      description: voice.description,
+      description: voice.description || 'Custom voice',
       type: 'custom',
-      status: voice.status,
-      uploadedAt: voice.uploadedAt
+      language: voice.language || 'en-US',
+      gender: voice.gender || 'unknown',
+      filepath: voice.filepath
     }));
+
+    const allVoices = {
+      ai: formattedAiVoices,
+      custom: formattedUserVoices,
+      total: formattedAiVoices.length + formattedUserVoices.length
+    };
 
     res.json({
       success: true,
-      data: {
-        ai: aiVoices,
-        custom: customVoices
-      }
+      voices: allVoices
     });
   } catch (error) {
-    console.error('Get available voices error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error fetching voices:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch available voices',
+      error: error.message
+    });
   }
 };
 
@@ -269,7 +252,7 @@ exports.getVoiceCloneStatus = async (req, res) => {
 
 exports.testVoice = async (req, res) => {
   try {
-    const { voiceId, text, voiceType } = req.body;
+    const { voiceId, text, voiceType = 'ai' } = req.body;
     
     if (!text || text.length < 1) {
       return res.status(400).json({ message: 'Text is required for voice testing' });
@@ -279,8 +262,42 @@ exports.testVoice = async (req, res) => {
       return res.status(400).json({ message: 'Text too long for testing (max 200 characters)' });
     }
 
-    // Simulate text-to-speech generation
-    // In real implementation, this would generate actual audio
+    if (!voiceId) {
+      return res.status(400).json({ message: 'Voice ID is required' });
+    }
+
+    // Generate audio using free TTS service
+    const audioResult = await textToSpeechService.generateAudio(text, {
+      voice: voiceId,
+      settings: { speed: 1.0 }
+    });
+
+    if (!audioResult.success) {
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to generate voice test audio' 
+      });
+    }
+
+    // For browser TTS, return instructions for frontend
+    if (audioResult.type === 'browser-tts') {
+      return res.json({
+        success: true,
+        message: 'Voice test ready for browser synthesis',
+        data: {
+          voiceId,
+          voiceType,
+          text,
+          type: 'browser-tts',
+          instructions: `/api/voice/audio/${audioResult.filename}`,
+          duration: audioResult.duration,
+          provider: 'Browser Speech Synthesis (FREE)'
+        }
+      });
+    }
+
+    // For system TTS, return audio file URL
+    const audioUrl = `/api/voice/audio/${audioResult.filename}`;
     
     res.json({
       success: true,
@@ -289,13 +306,21 @@ exports.testVoice = async (req, res) => {
         voiceId,
         voiceType,
         text,
-        audioUrl: `/api/voice/test-audio/${voiceId}`, // Placeholder URL
-        duration: Math.ceil(text.length / 10) // Rough estimation
+        audioUrl,
+        filename: audioResult.filename,
+        duration: audioResult.duration,
+        fileSize: audioResult.fileSize,
+        provider: textToSpeechService.getProviderInfo().name
       }
     });
   } catch (error) {
     console.error('Test voice error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to test voice',
+      error: error.message,
+      suggestion: 'Using free browser-based TTS. No API keys required!'
+    });
   }
 };
 
@@ -348,78 +373,25 @@ exports.deleteVoiceSample = async (req, res) => {
   }
 };
 
-exports.getAvailableVoices = async (req, res) => {
-  try {
-    const aiVoices = TextToSpeechService.getAvailableVoices();
-    const user = await User.findById(req.user._id).select('voiceSamples');
-    const userVoices = user.voiceSamples
-      .filter(sample => sample.isActive)
-      .map(sample => ({
-        id: sample._id.toString(),
-        name: sample.originalName,
-        type: 'cloned',
-        duration: sample.duration
-      }));
-
-    res.json({
-      success: true,
-      voices: {
-        ai: aiVoices.map(voice => ({ ...voice, type: 'ai' })),
-        cloned: userVoices
-      }
-    });
-  } catch (error) {
-    console.error('Get available voices error:', error);
-    res.status(500).json({ message: 'Error fetching available voices' });
-  }
-};
-
-exports.testVoice = async (req, res) => {
-  try {
-    const { voiceId, voiceType, text } = req.body;
-    const testText = text || 'Hello! This is a test of your selected voice. How does it sound?';
-
-    let audioResult;
-
-    if (voiceType === 'ai') {
-      audioResult = await TextToSpeechService.generateSpeech(testText, voiceId, 'medium');
-    } else if (voiceType === 'cloned') {
-      audioResult = await VoiceClonerService.cloneVoice(testText, voiceId, req.user._id);
-    } else {
-      return res.status(400).json({ message: 'Invalid voice type' });
-    }
-
-    res.json({
-      success: true,
-      message: 'Voice test generated successfully',
-      audio: {
-        filename: audioResult.filename,
-        duration: audioResult.duration
-      }
-    });
-  } catch (error) {
-    console.error('Voice test error:', error);
-    res.status(500).json({ message: 'Error testing voice' });
-  }
-};
-
-exports.streamVoiceTest = async (req, res) => {
+// Serve generated audio files
+exports.getAudioFile = async (req, res) => {
   try {
     const { filename } = req.params;
-    const audioPath = path.join(__dirname, '../uploads/audio', filename);
+    const filepath = textToSpeechService.getAudioFilePath(filename);
     
-    // Check if file exists
-    try {
-      await fs.access(audioPath);
-    } catch (error) {
+    if (!fs.existsSync(filepath)) {
       return res.status(404).json({ message: 'Audio file not found' });
     }
 
+    // Set appropriate headers for audio streaming
     res.setHeader('Content-Type', 'audio/mpeg');
-    const stream = require('fs').createReadStream(audioPath);
-    stream.pipe(res);
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    
+    // Stream the audio file
+    const audioStream = fs.createReadStream(filepath);
+    audioStream.pipe(res);
   } catch (error) {
-    console.error('Stream voice test error:', error);
-    res.status(500).json({ message: 'Error streaming audio' });
+    console.error('Error serving audio file:', error);
+    res.status(500).json({ message: 'Error serving audio file' });
   }
 };

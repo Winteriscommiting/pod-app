@@ -8,7 +8,7 @@ const {
   cloneVoice,
   getVoiceCloneStatus,
   testVoice,
-  streamVoiceTest
+  getAudioFile
 } = require('../controllers/voiceController');
 const auth = require('../middleware/auth');
 
@@ -47,11 +47,9 @@ router.get('/clone/:sampleId/status', auth, getVoiceCloneStatus);
 // @access  Private
 router.post('/test', auth, testVoice);
 
-module.exports = router;
-
-// @route   GET /api/voice/test/:filename
-// @desc    Stream voice test audio
+// @route   GET /api/voice/audio/:filename
+// @desc    Serve generated audio files
 // @access  Private
-router.get('/test/:filename', auth, streamVoiceTest);
+router.get('/audio/:filename', auth, getAudioFile);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const Podcast = require('../models/Podcast');
 const Document = require('../models/Document');
 const textToSpeechService = require('../services/textToSpeech');
+const podcastService = require('../services/podcastService');
 const path = require('path');
 const fs = require('fs');
 
@@ -20,14 +21,25 @@ exports.createPodcast = async (req, res) => {
       });
     }
 
+    // Check if document has a summary, if not use extracted text
+    let contentToConvert = document.summary;
+    if (!contentToConvert || contentToConvert.trim() === '') {
+      contentToConvert = document.extractedText;
+      if (!contentToConvert || contentToConvert.trim() === '') {
+        return res.status(400).json({
+          message: 'Document has no content to convert to podcast'
+        });
+      }
+    }
+
     // Create podcast record
     const podcast = new Podcast({
       userId: req.user.id,
       documentId,
       title: title || `Podcast from ${document.originalName}`,
       description: description || `Generated podcast from ${document.originalName}`,
-      voiceType: voiceType || 'standard',
-      voiceSettings: voiceSettings || { speed: 1, pitch: 1 },
+      voiceType: voiceType || 'google-us-english-female',
+      voiceSettings: voiceSettings || { speed: 1, pitch: 1, volume: 1 },
       status: 'generating',
       progress: 0,
       wordCount: document.wordCount,
@@ -47,13 +59,43 @@ exports.createPodcast = async (req, res) => {
         title: podcast.title,
         status: podcast.status,
         progress: podcast.progress,
-        estimatedDuration: podcast.estimatedDuration
+        estimatedDuration: podcast.estimatedDuration,
+        contentType: podcast.contentType
       }
     });
 
   } catch (error) {
     console.error('Create podcast error:', error);
     res.status(500).json({ message: 'Server error during podcast creation' });
+  }
+};
+
+// Create podcast from document summary
+exports.createPodcastFromSummary = async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const { title, description, voiceType, voiceSettings } = req.body;
+
+    const result = await podcastService.createPodcastFromSummary(documentId, req.user.id, {
+      title,
+      description,
+      voiceType,
+      voiceSettings
+    });
+
+    if (!result.success) {
+      return res.status(400).json({ message: result.error });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Podcast generation from summary started',
+      data: result.podcast
+    });
+
+  } catch (error) {
+    console.error('Create podcast from summary error:', error);
+    res.status(500).json({ message: 'Server error during podcast creation from summary' });
   }
 };
 
@@ -359,17 +401,18 @@ exports.createPodcast = async (req, res) => {
       title: title || `Podcast from ${document.originalName}`,
       description: description || `Generated podcast from ${document.originalName}`,
       voiceType: voiceType || 'standard',
-      voiceSettings: voiceSettings || { speed: 1, pitch: 1 },
+      voiceSettings: voiceSettings || { speed: 1, pitch: 1, volume: 1 },
       status: 'generating',
       progress: 0,
-      wordCount: document.wordCount,
-      estimatedDuration: Math.ceil(document.wordCount / 150) // 150 words per minute
+      wordCount: contentToConvert.split(/\s+/).length,
+      estimatedDuration: Math.ceil(contentToConvert.split(/\s+/).length / 150), // 150 words per minute
+      contentType: document.summary ? 'summary' : 'full_text'
     });
 
     await podcast.save();
 
     // Start audio generation in background
-    generateAudioInBackground(podcast._id, document.extractedText, voiceType, voiceSettings);
+    podcastService.generatePodcastAudio(podcast._id, contentToConvert, voiceType, voiceSettings);
 
     res.status(201).json({
       success: true,
@@ -379,7 +422,8 @@ exports.createPodcast = async (req, res) => {
         title: podcast.title,
         status: podcast.status,
         progress: podcast.progress,
-        estimatedDuration: podcast.estimatedDuration
+        estimatedDuration: podcast.estimatedDuration,
+        contentType: podcast.contentType
       }
     });
 

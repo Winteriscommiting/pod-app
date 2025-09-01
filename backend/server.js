@@ -26,6 +26,16 @@ app.use('/api/documents', require('./routes/documents'));
 app.use('/api/podcasts', require('./routes/podcasts'));
 app.use('/api/voice', require('./routes/voice'));
 
+// Health check endpoint for Render
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: 'Connected'
+  });
+});
+
 // Serve frontend
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
