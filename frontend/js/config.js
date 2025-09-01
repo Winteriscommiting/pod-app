@@ -1,7 +1,7 @@
 // API Configuration
 const API_CONFIG = {
-    // Change this to your deployed backend URL
-    BASE_URL: 'https://your-backend-app.onrender.com',
+    // Change this to your deployed backend URL on Render
+    BASE_URL: 'https://pod-app-backend.onrender.com', // Update this with your actual Render URL
     // For local development, use: 'http://localhost:5000'
     
     // Full API base path
