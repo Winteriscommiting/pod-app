@@ -118,13 +118,10 @@ class AuthManager {
             if (btnText) btnText.style.display = 'none';
             if (btnLoader) btnLoader.style.display = 'inline';
 
-            console.log('🔑 Attempting login for:', email);
+            console.log('🚀 Attempting login for:', email);
+            console.log('🔗 API URL:', `${API_BASE_URL}/auth/login`);
 
-            // Get the API URL dynamically to ensure it's available
-            const apiBaseUrl = window.API_CONFIG ? window.API_CONFIG.BASE_URL + '/api' : 'http://localhost:5000/api';
-            console.log('📡 Using API URL:', apiBaseUrl);
-
-            const response = await fetch(`${apiBaseUrl}/auth/login`, {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -133,28 +130,34 @@ class AuthManager {
             });
 
             const data = await response.json();
-            console.log('📝 Login response:', data);
+            console.log('📡 Response status:', response.status);
+            console.log('📨 Response data:', data);
+            console.log('🔍 Response ok:', response.ok);
+            console.log('🔍 Data success:', data.success);
 
             if (response.ok && data.success) {
+                console.log('✅ Login successful! Token:', data.token);
+                
                 // Store authentication data
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
-                console.log('✅ Login successful! Redirecting to dashboard...');
                 utils.showToast('Login successful! Redirecting...', 'success');
 
-                // Immediate redirect without delay to prevent issues
+                console.log('🔄 Redirecting to dashboard in 1.5 seconds...');
+                // Redirect immediately for better testing
+                console.log('🚀 Executing immediate redirect to dashboard.html');
                 window.location.href = 'dashboard.html';
 
             } else {
-                console.log('❌ Login failed:', data.message);
+                console.log('❌ Login failed:', data.message || 'Unknown error');
                 utils.showToast(data.message || 'Login failed. Please check your credentials.', 'error');
                 // Clear password field on error
                 form.password.value = '';
             }
 
         } catch (error) {
-            console.error('❌ Login error:', error);
+            console.error('Login error:', error);
             utils.showToast('Network error. Please check your connection and try again.', 'error');
             // Clear password field on error
             form.password.value = '';

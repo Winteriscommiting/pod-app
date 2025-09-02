@@ -1,6 +1,5 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 
 async function createTestUser() {
@@ -16,7 +15,7 @@ async function createTestUser() {
         if (existingUser) {
             console.log('ℹ️  Test user already exists!');
             console.log('📧 Email: test@example.com');
-            console.log('� Password: password123');
+            console.log('🔑 Password: password123');
             mongoose.disconnect();
             return;
         }
@@ -37,32 +36,6 @@ async function createTestUser() {
     } catch (error) {
         console.error('❌ Error creating test user:', error);
         process.exit(1);
-    }
-}
-
-createTestUser();
-
-        // Create new user
-        const hashedPassword = await bcrypt.hash('password123', 12);
-        
-        const testUser = new User({
-            name: 'Test User',
-            email: 'test@example.com',
-            password: hashedPassword
-        });
-
-        await testUser.save();
-        
-        console.log('✅ Test user created successfully!');
-        console.log('📧 Email: test@example.com');
-        console.log('🔑 Password: password123');
-        console.log('🆔 User ID:', testUser._id);
-        
-    } catch (error) {
-        console.log('❌ Error:', error.message);
-    } finally {
-        await mongoose.disconnect();
-        process.exit(0);
     }
 }
 
