@@ -20,6 +20,7 @@
         <input type="email" id="email" placeholder="Email" value="test@example.com">
         <input type="password" id="password" placeholder="Password" value="password123">
         <button onclick="testLogin()">Test Login</button>
+        <button onclick="testRedirect()" style="background:#28a745;">Manual Redirect Test</button>
         
         <div id="log" class="log">Ready to test login...</div>
     </div>
@@ -40,6 +41,9 @@
             log('🔗 API URL: http://localhost:5000/api/auth/login');
             
             try {
+                // Test 1: Check if backend is accessible
+                log('🔍 Testing backend connectivity...');
+                
                 const response = await fetch('http://localhost:5000/api/auth/login', {
                     method: 'POST',
                     headers: {
@@ -63,10 +67,18 @@
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
                     log('💾 Token stored in localStorage');
-                    log('🔄 Now redirecting to dashboard...');
+                    log('🔄 Now testing redirect methods...');
                     
-                    // Redirect
-                    window.location.href = 'dashboard.html';
+                    // Test Method 1: Direct assignment
+                    log('🧪 Testing Method 1: window.location.href...');
+                    setTimeout(() => {
+                        try {
+                            window.location.href = 'dashboard.html';
+                            log('✅ Method 1 executed successfully');
+                        } catch (e) {
+                            log('❌ Method 1 failed: ' + e.message);
+                        }
+                    }, 1000);
                     
                 } else {
                     log('❌ Login failed: ' + (data.message || 'Unknown error'));
@@ -75,6 +87,34 @@
                 log('💥 Network error: ' + error.message);
             }
         }
+        
+        // Test redirect manually
+        function testRedirect() {
+            log('🧪 Testing manual redirect...');
+            try {
+                window.location.href = 'dashboard.html';
+                log('✅ Manual redirect executed');
+            } catch (e) {
+                log('❌ Manual redirect failed: ' + e.message);
+            }
+        }
+        
+        // Test if dashboard.html exists
+        async function testDashboardExists() {
+            try {
+                const response = await fetch('dashboard.html', { method: 'HEAD' });
+                log('📄 Dashboard.html exists: ' + response.ok);
+            } catch (e) {
+                log('📄 Dashboard.html check failed: ' + e.message);
+            }
+        }
+        
+        // Run on page load
+        window.onload = function() {
+            log('🌐 Page loaded');
+            log('📍 Current URL: ' + window.location.href);
+            testDashboardExists();
+        };
     </script>
 </body>
 </html>
