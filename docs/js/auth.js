@@ -144,10 +144,24 @@ class AuthManager {
 
                 utils.showToast('Login successful! Redirecting...', 'success');
 
-                console.log('🔄 Redirecting to dashboard in 1.5 seconds...');
-                // Redirect immediately for better testing
-                console.log('🚀 Executing immediate redirect to dashboard.html');
-                window.location.href = 'dashboard.html';
+                console.log('🔄 Redirecting to dashboard...');
+                console.log('🚀 Executing redirect to dashboard.html');
+                
+                // Multiple redirect methods for reliability
+                try {
+                    // Method 1: Direct assignment
+                    window.location.href = 'dashboard.html';
+                } catch (e) {
+                    console.log('Method 1 failed, trying method 2');
+                    // Method 2: Replace
+                    window.location.replace('dashboard.html');
+                }
+                
+                // Backup method with delay
+                setTimeout(() => {
+                    console.log('🔄 Backup redirect executing...');
+                    window.location.href = 'dashboard.html';
+                }, 500);
 
             } else {
                 console.log('❌ Login failed:', data.message || 'Unknown error');
