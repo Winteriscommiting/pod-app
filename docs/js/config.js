@@ -1,36 +1,94 @@
-// API Configuration with environment detection
+// GitHub Pages Configuration - ATLAS PRODUCTION
 const API_CONFIG = {
-    // Detect if we're running locally or on GitHub Pages
-    BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:5000'  // Local development
-        : 'http://localhost:5000',  // For now, always use localhost (will update after Render deployment)
+    // Production API Base URL (Update with your deployed backend)
+    BASE_URL: 'https://your-backend-url.onrender.com/api', // Update this with your actual backend URL
     
-    // API endpoints
-    ENDPOINTS: {
-        auth: '/api/auth',
-        documents: '/api/documents', 
-        podcasts: '/api/podcasts',
-        summaries: '/api/documents/summaries',
-        voice: '/api/voice'
+    // Fallback to local development
+    FALLBACK_URL: 'http://localhost:5000/api',
+    
+    // Auto-detect environment
+    get API_BASE_URL() {
+        // Check if we're on GitHub Pages
+        if (window.location.hostname.includes('github.io')) {
+            return this.BASE_URL;
+        }
+        // Use local development server
+        return this.FALLBACK_URL;
     },
     
-    // Get full API URL
-    getApiUrl: function(endpoint) {
-        if (endpoint.startsWith('/')) {
-            return this.BASE_URL + endpoint;
+    // Health check and connectivity test
+    async testConnection() {
+        try {
+            console.log('🔍 Testing backend connectivity...');
+            console.log('🌐 Testing URL:', this.API_BASE_URL);
+            
+            const response = await fetch(`${this.API_BASE_URL.replace('/api', '')}/api/health`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Backend connected successfully');
+                console.log('📊 Server status:', data);
+                return true;
+            } else {
+                console.log('⚠️ Backend responded with error:', response.status);
+                return false;
+            }
+        } catch (error) {
+            console.log('❌ Backend connection failed:', error.message);
+            console.log('💡 Backend might be sleeping (Render free tier) or not deployed');
+            
+            // Show user-friendly message for GitHub Pages
+            if (window.location.hostname.includes('github.io')) {
+                this.showConnectionError();
+            }
+            return false;
         }
-        return this.BASE_URL + (this.ENDPOINTS[endpoint] || `/${endpoint}`);
+    },
+    
+    // Show user-friendly error message
+    showConnectionError() {
+        const errorMessage = document.createElement('div');
+        errorMessage.innerHTML = `
+            <div style="position: fixed; top: 10px; right: 10px; background: #ff6b6b; color: white; padding: 15px; border-radius: 8px; z-index: 9999; max-width: 300px;">
+                <strong>🔌 Backend Disconnected</strong><br>
+                The server might be starting up. Please wait a moment and try again.
+                <button onclick="this.parentElement.remove()" style="float: right; background: none; border: none; color: white; cursor: pointer; margin-left: 10px;">×</button>
+            </div>
+        `;
+        document.body.appendChild(errorMessage);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (errorMessage.parentElement) {
+                errorMessage.remove();
+            }
+        }, 10000);
     }
 };
 
-// Make it globally available
-window.API_CONFIG = API_CONFIG;
+// Global API base URL
+const API_BASE_URL = API_CONFIG.API_BASE_URL;
 
-// Enhanced debug logging
-console.log('🔧 Environment:', window.location.hostname);
-console.log('📍 Backend URL:', API_CONFIG.BASE_URL);
-console.log('🌐 Frontend URL:', window.location.href);
-console.log('📂 Current Path:', window.location.pathname);
+// Test connection on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    const isConnected = await API_CONFIG.testConnection();
+    if (!isConnected && window.location.hostname.includes('github.io')) {
+        console.log('⏳ Backend might be sleeping, will retry automatically...');
+        
+        // Retry connection after 5 seconds for Render free tier
+        setTimeout(async () => {
+            await API_CONFIG.testConnection();
+        }, 5000);
+    }
+});
+
+console.log('⚙️ Frontend Config Loaded - GITHUB PAGES + ATLAS');
+console.log('� API Base URL:', API_BASE_URL);
 
 // Test backend connectivity with better error handling
 setTimeout(() => {

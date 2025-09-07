@@ -6,14 +6,17 @@ require('dotenv').config();
 // Add or update CORS configuration
 const cors = require('cors');
 
-// CORS configuration
+// CORS configuration - ATLAS PRODUCTION
 const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:5000', 
+    'http://127.0.0.1:3000',
     'http://127.0.0.1:5000',
-    'https://winteriscommiting.github.io',  // Add your GitHub Pages domain
-    'https://winteriscommiting.github.io/pod-app'  // Full GitHub Pages URL
+    'https://winteriscommiting.github.io',
+    'https://winteriscommiting.github.io/pod-app',
+    'https://pod-app-production.onrender.com', // Add your Render URL
+    'https://your-custom-domain.com' // Add any custom domains
   ],
   credentials: true,
   optionsSuccessStatus: 200,

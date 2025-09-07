@@ -9,7 +9,10 @@
     "local": "node server.js",
     "start-local": "powershell -ExecutionPolicy Bypass -File start-local.ps1",
     "setup": "node setup-tts.js",
-    "test-tts": "node test-tts.js"
+    "test-tts": "node test-tts.js",
+    "test-atlas": "node test-atlas-connection.js",
+    "create-atlas-user": "node create-atlas-test-user.js",
+    "atlas-setup": "npm run test-atlas && npm run create-atlas-user"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
