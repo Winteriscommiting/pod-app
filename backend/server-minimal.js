@@ -6,6 +6,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 require('dotenv').config();
 
 const app = express();
@@ -51,6 +53,9 @@ const DocumentSchema = new mongoose.Schema({
   fileSize: { type: Number, required: true },
   content: { type: String },
   summary: { type: String },
+  wordCount: { type: Number },
+  readingTime: { type: Number },
+  compressionRatio: { type: Number },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   uploadedAt: { type: Date, default: Date.now },
   status: { 
@@ -118,6 +123,89 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Text extraction helper functions
+async function extractTextFromBuffer(buffer, fileExt) {
+  try {
+    switch (fileExt) {
+      case '.txt':
+        return buffer.toString('utf8');
+      
+      case '.pdf':
+        const pdfData = await pdfParse(buffer);
+        return pdfData.text;
+      
+      case '.docx':
+        const docxResult = await mammoth.extractRawText({ buffer: buffer });
+        return docxResult.value;
+      
+      default:
+        throw new Error(`Unsupported file type: ${fileExt}`);
+    }
+  } catch (error) {
+    console.error(`❌ Text extraction failed for ${fileExt}:`, error);
+    throw new Error(`Failed to extract text from ${fileExt} file`);
+  }
+}
+
+// Simple AI-style summarization (basic implementation)
+function generateSummary(text) {
+  try {
+    // Clean and prepare text
+    const cleanText = text.replace(/\s+/g, ' ').trim();
+    const words = cleanText.split(' ');
+    const sentences = cleanText.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    
+    if (sentences.length === 0) {
+      return {
+        summary: 'No meaningful content found for summarization.',
+        wordCount: words.length,
+        readingTime: Math.ceil(words.length / 200), // Average reading speed
+        compressionRatio: 0
+      };
+    }
+    
+    // Simple extractive summarization - take first, middle, and last meaningful sentences
+    let summarySentences = [];
+    
+    if (sentences.length <= 3) {
+      summarySentences = sentences;
+    } else {
+      // Take first sentence
+      summarySentences.push(sentences[0].trim());
+      
+      // Take middle sentence(s)
+      const middleIndex = Math.floor(sentences.length / 2);
+      summarySentences.push(sentences[middleIndex].trim());
+      
+      // Take last sentence if different from others
+      const lastSentence = sentences[sentences.length - 1].trim();
+      if (!summarySentences.includes(lastSentence)) {
+        summarySentences.push(lastSentence);
+      }
+    }
+    
+    const summary = summarySentences.join('. ') + '.';
+    const summaryWordCount = summary.split(' ').length;
+    const compressionRatio = Math.round((1 - summaryWordCount / words.length) * 100);
+    
+    return {
+      summary: summary,
+      wordCount: words.length,
+      summaryWordCount: summaryWordCount,
+      readingTime: Math.ceil(words.length / 200),
+      compressionRatio: Math.max(0, compressionRatio)
+    };
+  } catch (error) {
+    console.error('❌ Summary generation failed:', error);
+    return {
+      summary: 'Failed to generate summary.',
+      wordCount: 0,
+      readingTime: 0,
+      compressionRatio: 0
+    };
+  }
+}
 
 // CORS middleware
 app.use(cors({
@@ -308,13 +396,17 @@ app.post('/api/documents/upload', authenticateToken, upload.single('document'), 
 
     // Extract text content based on file type
     let content = '';
-    const fileExt = path.extname(req.file.originalname).toLowerCase();
+    let extractionStatus = 'uploaded';
     
-    if (fileExt === '.txt') {
-      content = req.file.buffer.toString('utf8');
-    } else if (fileExt === '.pdf' || fileExt === '.docx') {
-      // For now, store as binary and handle extraction later
-      content = `[${fileExt.toUpperCase()} file content - processing required]`;
+    try {
+      console.log('🔍 Extracting text from file...');
+      content = await extractTextFromBuffer(req.file.buffer, fileExt);
+      extractionStatus = 'processed';
+      console.log('✅ Text extraction successful, length:', content.length);
+    } catch (extractionError) {
+      console.error('❌ Text extraction failed:', extractionError);
+      content = `[Text extraction failed: ${extractionError.message}]`;
+      extractionStatus = 'error';
     }
 
     const document = new Document({
@@ -324,7 +416,7 @@ app.post('/api/documents/upload', authenticateToken, upload.single('document'), 
       fileSize: req.file.size,
       content: content,
       userId: req.user.id,
-      status: fileExt === '.txt' ? 'processed' : 'uploaded'
+      status: extractionStatus
     });
 
     await document.save();
@@ -387,6 +479,162 @@ app.get('/api/documents/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('❌ Error fetching document:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch document' });
+  }
+});
+
+// Summarize document endpoint
+app.post('/api/documents/:id/summarize', authenticateToken, async (req, res) => {
+  try {
+    const document = await Document.findOne({ 
+      _id: req.params.id, 
+      userId: req.user.id 
+    });
+
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    if (!document.content || document.content.trim().length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Document has no content to summarize' 
+      });
+    }
+
+    console.log('📝 Generating summary for document:', document.title);
+    
+    // Generate summary
+    const summaryData = generateSummary(document.content);
+    
+    // Update document with summary
+    document.summary = summaryData.summary;
+    document.wordCount = summaryData.wordCount;
+    document.readingTime = summaryData.readingTime;
+    document.compressionRatio = summaryData.compressionRatio;
+    await document.save();
+
+    console.log('✅ Summary generated and saved');
+
+    res.json({
+      success: true,
+      message: 'Document summarized successfully',
+      data: {
+        id: document._id,
+        summary: summaryData.summary,
+        wordCount: summaryData.wordCount,
+        summaryWordCount: summaryData.summaryWordCount,
+        readingTime: summaryData.readingTime,
+        compressionRatio: summaryData.compressionRatio
+      }
+    });
+  } catch (error) {
+    console.error('❌ Summarization error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Summarization failed' 
+    });
+  }
+});
+
+// Get document summaries with stats
+app.get('/api/summaries', authenticateToken, async (req, res) => {
+  try {
+    const { status } = req.query;
+    
+    let filter = { userId: req.user.id };
+    if (status === 'completed') {
+      filter.summary = { $exists: true, $ne: null };
+    } else if (status === 'pending') {
+      filter.summary = { $exists: false };
+    } else if (status === 'failed') {
+      filter.status = 'error';
+    }
+
+    const documents = await Document.find(filter)
+      .sort({ uploadedAt: -1 })
+      .select('title filename fileType fileSize summary wordCount readingTime compressionRatio status uploadedAt');
+
+    // Calculate stats
+    const totalDocuments = await Document.countDocuments({ userId: req.user.id });
+    const summarizedDocuments = await Document.countDocuments({ 
+      userId: req.user.id, 
+      summary: { $exists: true, $ne: null } 
+    });
+    
+    const avgCompressionRatio = await Document.aggregate([
+      { $match: { userId: req.user.id, compressionRatio: { $exists: true } } },
+      { $group: { _id: null, avgCompression: { $avg: '$compressionRatio' } } }
+    ]);
+    
+    const totalReadingTime = await Document.aggregate([
+      { $match: { userId: req.user.id, readingTime: { $exists: true } } },
+      { $group: { _id: null, totalTime: { $sum: '$readingTime' } } }
+    ]);
+
+    res.json({
+      success: true,
+      data: documents,
+      stats: {
+        totalDocuments,
+        summarizedCount: summarizedDocuments,
+        avgCompressionRatio: Math.round(avgCompressionRatio[0]?.avgCompression || 0),
+        totalReadingTime: totalReadingTime[0]?.totalTime || 0
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error fetching summaries:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch summaries' });
+  }
+});
+
+// Auto-summarize all processed documents
+app.post('/api/documents/auto-summarize', authenticateToken, async (req, res) => {
+  try {
+    const documents = await Document.find({ 
+      userId: req.user.id,
+      status: 'processed',
+      summary: { $exists: false }
+    });
+
+    console.log(`📝 Auto-summarizing ${documents.length} documents...`);
+    
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const document of documents) {
+      try {
+        if (document.content && document.content.trim().length > 0) {
+          const summaryData = generateSummary(document.content);
+          
+          document.summary = summaryData.summary;
+          document.wordCount = summaryData.wordCount;
+          document.readingTime = summaryData.readingTime;
+          document.compressionRatio = summaryData.compressionRatio;
+          await document.save();
+          
+          successCount++;
+        }
+      } catch (error) {
+        console.error(`❌ Failed to summarize document ${document._id}:`, error);
+        errorCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Auto-summarization completed`,
+      data: {
+        processed: successCount,
+        failed: errorCount,
+        total: documents.length
+      }
+    });
+  } catch (error) {
+    console.error('❌ Auto-summarization error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Auto-summarization failed' 
+    });
   }
 });
 
@@ -506,6 +754,9 @@ app.get('*', (req, res) => {
       '/api/auth/register',
       '/api/documents/upload',
       '/api/documents',
+      '/api/documents/:id/summarize',
+      '/api/summaries',
+      '/api/documents/auto-summarize',
       '/api/podcasts'
     ]
   });

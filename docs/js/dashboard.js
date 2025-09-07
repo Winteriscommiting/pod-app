@@ -493,13 +493,14 @@ async function handleDocumentUpload(e) {
             e.target.reset();
             await loadDocuments();
             
-            // Trigger summarization if manager is available
-            if (window.summarizationManager && response.data && response.data.id) {
+            // Trigger automatic summarization if document was processed successfully
+            if (window.summarizationManager && response.data && response.data.id && response.data.status === 'processed') {
                 try {
-                    await window.summarizationManager.startSummarization(response.data.id);
+                    console.log('🤖 Auto-triggering summarization...');
+                    await window.summarizationManager.summarizeDocument(response.data.id);
                     utils.showToast('Document summarization started', 'info');
                 } catch (error) {
-                    console.error('Summarization error:', error);
+                    console.error('Auto-summarization error:', error);
                     // Don't show error toast since document upload was successful
                 }
             }
