@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test - Podcast App</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 500px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #45a049; }
+        .log {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>🧪 Login Test Page</h2>
+        
+        <div id="status" class="status">
+            Testing backend connection...
+        </div>
+        
+        <form id="testForm">
+            <input type="email" id="email" placeholder="Email" value="test@example.com" required>
+            <input type="password" id="password" placeholder="Password" value="password123" required>
+            <button type="submit">🔐 Test Login</button>
+        </form>
+        
+        <button type="button" onclick="clearLog()">🧹 Clear Log</button>
+        <button type="button" onclick="testDashboardRedirect()">🔄 Test Dashboard Redirect</button>
+        
+        <h3>📋 Test Log:</h3>
+        <div id="log" class="log">Ready to test...\n</div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function setStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = 'Log cleared...\n';
+        }
+        
+        async function testBackendConnection() {
+            try {
+                log('🔍 Testing backend connection...');
+                const response = await fetch('http://localhost:5000/api/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Backend connected: ${data.status}`);
+                    setStatus('✅ Backend Connected', 'success');
+                    return true;
+                } else {
+                    log(`❌ Backend error: ${response.status}`);
+                    setStatus('❌ Backend Connection Failed', 'error');
+                    return false;
+                }
+            } catch (error) {
+                log(`💥 Connection failed: ${error.message}`);
+                setStatus('💥 Backend Offline', 'error');
+                return false;
+            }
+        }
+        
+        function testDashboardRedirect() {
+            log('🧪 Testing dashboard redirect...');
+            window.location.href = 'dashboard.html';
+        }
+        
+        async function testLogin(email, password) {
+            try {
+                log(`🚀 Attempting login for: ${email}`);
+                
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                log(`📡 Response status: ${response.status}`);
+                
+                const data = await response.json();
+                log(`📨 Response data: ${JSON.stringify(data, null, 2)}`);
+                
+                if (response.ok && data.success) {
+                    log('✅ Login successful!');
+                    
+                    // Store credentials
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    log('💾 Credentials stored in localStorage');
+                    
+                    setStatus('✅ Login Successful - Redirecting...', 'success');
+                    
+                    // Test redirect
+                    log('🔄 Redirecting to dashboard...');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                    
+                } else {
+                    log(`❌ Login failed: ${data.message}`);
+                    setStatus(`❌ Login Failed: ${data.message}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`💥 Login error: ${error.message}`);
+                setStatus(`💥 Login Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Form handler
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            await testLogin(email, password);
+        });
+        
+        // Test connection on load
+        window.addEventListener('load', testBackendConnection);
+    </script>
+</body>
+</html>

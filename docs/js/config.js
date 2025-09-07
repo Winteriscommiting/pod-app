@@ -1,19 +1,15 @@
-// GitHub Pages Configuration - ATLAS PRODUCTION
+// GitHub Pages Configuration - TEMPORARY LOCAL TESTING
 const API_CONFIG = {
-    // Production API Base URL (Update with your deployed backend)
-    BASE_URL: 'https://your-backend-url.onrender.com/api', // Update this with your actual backend URL
+    // Temporary: Use local backend for testing
+    BASE_URL: 'http://localhost:5000/api',
     
     // Fallback to local development
     FALLBACK_URL: 'http://localhost:5000/api',
     
     // Auto-detect environment
     get API_BASE_URL() {
-        // Check if we're on GitHub Pages
-        if (window.location.hostname.includes('github.io')) {
-            return this.BASE_URL;
-        }
-        // Use local development server
-        return this.FALLBACK_URL;
+        // Temporarily always use local for testing
+        return 'http://localhost:5000/api';
     },
     
     // Health check and connectivity test

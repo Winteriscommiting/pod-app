@@ -1,6 +1,6 @@
 // Authentication Manager
-// Get API configuration
-const API_BASE_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL + '/api' : 'http://localhost:5000/api';
+// Get API configuration - use the global API_BASE_URL from config.js
+const API_BASE_URL = typeof window !== 'undefined' && window.API_BASE_URL ? window.API_BASE_URL : 'http://localhost:5000/api';
 
 class AuthManager {
     constructor() {
