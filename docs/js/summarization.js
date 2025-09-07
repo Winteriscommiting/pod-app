@@ -179,6 +179,9 @@ class SummarizationManager {
                         <button class="btn btn-small btn-secondary copy-summary-btn" data-id="${document._id}">
                             <i class="fas fa-copy"></i> Copy
                         </button>
+                        <button class="btn btn-small btn-primary create-podcast-btn" data-id="${document._id}">
+                            <i class="fas fa-microphone"></i> Convert to Podcast
+                        </button>
                     ` : ''}
                     <button class="btn btn-small btn-secondary view-document-btn" data-id="${document._id}">
                         <i class="fas fa-file"></i> View Document
@@ -232,6 +235,14 @@ class SummarizationManager {
             btn.addEventListener('click', (e) => {
                 const documentId = e.target.dataset.id;
                 this.copySummary(documentId);
+            });
+        });
+
+        // Create podcast button
+        document.querySelectorAll('.create-podcast-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const documentId = e.target.dataset.id;
+                this.createPodcastFromSummary(documentId);
             });
         });
 
@@ -292,6 +303,65 @@ class SummarizationManager {
             window.switchTab('documents');
         }
         // Could implement document viewing modal here
+    }
+
+    async createPodcastFromSummary(documentId) {
+        try {
+            console.log('🎤 Creating podcast from summary for document:', documentId);
+
+            // Show confirmation dialog
+            if (!confirm('Convert this summary to a podcast? This will generate an audio version of the summary.')) {
+                return;
+            }
+
+            // Update button state
+            const button = document.querySelector(`[data-id="${documentId}"].create-podcast-btn`);
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            }
+
+            const response = await fetch(`${this.apiBase}/podcasts/from-summary/${documentId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: '', // Will use default title
+                    description: '', // Will use default description
+                    voiceType: 'google-us-english-female', // Default voice
+                    voiceSettings: { speed: 0.9, pitch: 1, volume: 1 } // Slightly slower for summaries
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create podcast from summary');
+            }
+
+            const result = await response.json();
+            console.log('✅ Podcast creation started:', result.data);
+            
+            this.showNotification('Podcast creation started! Check the Podcasts tab for progress.', 'success');
+            
+            // Optional: Switch to podcasts tab to show the new podcast
+            if (window.switchTab) {
+                setTimeout(() => {
+                    window.switchTab('podcasts');
+                }, 2000);
+            }
+
+        } catch (error) {
+            console.error('❌ Podcast creation error:', error);
+            this.showNotification('Failed to create podcast from summary', 'error');
+        } finally {
+            // Reset button state
+            const button = document.querySelector(`[data-id="${documentId}"].create-podcast-btn`);
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-microphone"></i> Convert to Podcast';
+            }
+        }
     }
 
     refreshSummaries() {
