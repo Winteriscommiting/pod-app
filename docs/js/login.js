@@ -1,8 +1,10 @@
-// Direct login handler
-console.log('🔐 Login handler loaded');
+// Direct login handler - VERSION 20250907-2
+console.log('🔐 Login handler loaded - CACHE BUSTED VERSION 2');
+alert('DEBUG: Login.js loaded successfully!');
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔐 DOM loaded, setting up login form...');
+    alert('DEBUG: DOM loaded, setting up form...');
     
     const loginForm = document.getElementById('loginForm');
     if (!loginForm) {
