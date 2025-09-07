@@ -1,30 +1,39 @@
 // Dashboard functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Check authentication with better logging
+    // Simple authentication check
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
-    console.log('🔍 Dashboard authentication check:');
-    console.log('🔑 Token present:', !!token);
-    console.log('👤 User data present:', !!user);
+    console.log('🔍 Dashboard auth check:', !!token);
     
     if (!token) {
-        console.log('❌ No token found, redirecting to login...');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 100); // Small delay to ensure storage is checked
+        console.log('❌ No token, redirecting to login');
+        window.location.href = 'login.html';
         return;
     }
 
-    console.log('✅ Authenticated, initializing dashboard...');
-    // Initialize dashboard
-    initializeDashboard();
+    console.log('✅ Authenticated, loading dashboard');
     
-    // Set up event listeners
-    setupEventListeners();
+    // Display user info
+    try {
+        const userData = JSON.parse(user);
+        const userNameEl = document.getElementById('userName');
+        if (userNameEl && userData) {
+            userNameEl.textContent = userData.username || userData.email;
+        }
+    } catch (e) {
+        console.log('User data parse error:', e);
+    }
     
-    // Load initial data
-    loadDashboardData();
+    // Logout handler
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+    }
 });
 
 let currentTab = 'documents';
