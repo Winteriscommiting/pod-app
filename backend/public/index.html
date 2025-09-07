@@ -3,710 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PodcastAI - Transform Documents into AI Podcasts</title>
-    <meta name="description" content="Convert PDF, DOCX, and TXT files into engaging audio podcasts using free AI voices. No API keys required.">
-    <link rel="stylesheet" href="css/style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Landing Page JavaScript -->
-    <script src="js/landing.js" defer></script>
+    <title>Podcast App - Backend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        .btn.secondary {
+            background: #2196F3;
+        }
+        .btn.secondary:hover {
+            background: #1976D2;
+        }
+        .status {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        .api-links {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .api-links h3 {
+            margin-bottom: 15px;
+        }
+        .api-links a {
+            display: block;
+            color: #90CAF9;
+            text-decoration: none;
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .api-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
-<body class="landing-page">
-    <!-- Theme Toggle -->
-    <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
-        <i class="fas fa-moon"></i>
-    </button>
-
-    <nav class="landing-nav">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <i class="fas fa-podcast brand-icon"></i>
-                <span class="brand-text">PodcastAI</span>
-                <span class="badge-free">FREE</span>
-            </div>
-            <div class="nav-menu" id="navMenu">
-                <a href="#home" class="nav-link">Home</a>
-                <a href="#features" class="nav-link">Features</a>
-                <a href="#how-it-works" class="nav-link">How It Works</a>
-                <a href="#pricing" class="nav-link">Pricing</a>
-                <a href="login.html" class="btn btn-outline">Login</a>
-                <a href="login.html" class="btn btn-primary">Get Started</a>
-            </div>
-            <div class="hamburger" id="hamburger">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </div>
+<body>
+    <div class="container">
+        <div class="logo">🎙️</div>
+        <h1>Podcast App Backend</h1>
+        <p>Backend server is running successfully!</p>
+        
+        <div class="status">
+            <strong>✅ Server Status: Active</strong><br>
+            Port: 5000 | Database: MongoDB Atlas
         </div>
-    </nav>
-
-    <main>
-        <!-- Hero Section -->
-        <section id="home" class="hero">
-            <div class="hero-container">
-                <div class="hero-content">
-                    <div class="hero-badge">
-                        <i class="fas fa-gift"></i>
-                        <span>100% Free Forever - No API Keys Required</span>
-                    </div>
-                    <h1 class="hero-title">
-                        Transform Your Documents into 
-                        <span class="highlight">Professional Podcasts</span>
-                    </h1>
-                    <p class="hero-subtitle">
-                        Convert PDF, DOCX, and TXT files into engaging audio podcasts using completely free AI voices. 
-                        No subscriptions, no limits, no hidden costs.
-                    </p>
-                    <div class="hero-stats">
-                        <div class="stat">
-                            <i class="fas fa-users"></i>
-                            <span>10,000+ Users</span>
-                        </div>
-                        <div class="stat">
-                            <i class="fas fa-podcast"></i>
-                            <span>50,000+ Podcasts Created</span>
-                        </div>
-                        <div class="stat">
-                            <i class="fas fa-star"></i>
-                            <span>4.9/5 Rating</span>
-                        </div>
-                    </div>
-                    <div class="hero-buttons">
-                        <a href="login.html" class="btn btn-primary btn-large">
-                            <i class="fas fa-rocket"></i>
-                            Start Creating Free
-                        </a>
-                        <a href="#demo" class="btn btn-secondary btn-large">
-                            <i class="fas fa-play"></i>
-                            Watch Demo
-                        </a>
-                    </div>
-                    <div class="hero-features">
-                        <div class="feature-tag">
-                            <i class="fas fa-check"></i>
-                            No Registration Required
-                        </div>
-                        <div class="feature-tag">
-                            <i class="fas fa-check"></i>
-                            Browser-Based TTS
-                        </div>
-                        <div class="feature-tag">
-                            <i class="fas fa-check"></i>
-                            Multiple Voice Options
-                        </div>
-                    </div>
-                </div>
-                <div class="hero-visual">
-                    <div class="demo-workflow">
-                        <div class="workflow-step active">
-                            <div class="step-icon">
-                                <i class="fas fa-file-upload"></i>
-                            </div>
-                            <div class="step-content">
-                                <h4>1. Upload Document</h4>
-                                <p>PDF, DOCX, or TXT</p>
-                            </div>
-                        </div>
-                        <div class="workflow-arrow">
-                            <i class="fas fa-arrow-down"></i>
-                        </div>
-                        <div class="workflow-step">
-                            <div class="step-icon">
-                                <i class="fas fa-microphone"></i>
-                            </div>
-                            <div class="step-content">
-                                <h4>2. Choose Voice</h4>
-                                <p>Free AI voices</p>
-                            </div>
-                        </div>
-                        <div class="workflow-arrow">
-                            <i class="fas fa-arrow-down"></i>
-                        </div>
-                        <div class="workflow-step">
-                            <div class="step-icon">
-                                <i class="fas fa-headphones"></i>
-                            </div>
-                            <div class="step-content">
-                                <h4>3. Generate Podcast</h4>
-                                <p>Download MP3</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Features Section -->
-        <section id="features" class="features">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Why Choose Our Podcast Creator?</h2>
-                    <p>Everything you need to create professional podcasts from your documents</p>
-                </div>
-                <div class="features-grid">
-                    <div class="feature-card featured">
-                        <div class="feature-icon">
-                            <i class="fas fa-gift"></i>
-                        </div>
-                        <h3>100% Free Forever</h3>
-                        <p>No subscriptions, no API keys, no hidden costs. Browser-based TTS technology with multiple voice options available instantly.</p>
-                        <div class="feature-list">
-                            <div class="feature-item">
-                                <i class="fas fa-check"></i>
-                                <span>No registration required</span>
-                            </div>
-                            <div class="feature-item">
-                                <i class="fas fa-check"></i>
-                                <span>Unlimited conversions</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <h3>Multiple File Formats</h3>
-                        <p>Support for PDF, DOCX, and TXT files with intelligent text extraction and formatting preservation.</p>
-                        <div class="format-icons">
-                            <span class="format-badge">PDF</span>
-                            <span class="format-badge">DOCX</span>
-                            <span class="format-badge">TXT</span>
-                        </div>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-microphone-alt"></i>
-                        </div>
-                        <h3>Advanced Voice Options</h3>
-                        <p>Choose from multiple free AI voices or use system voices. Browser-based synthesis with quality audio output.</p>
-                        <div class="voice-demo">
-                            <button class="voice-preview-btn" data-voice="default">
-                                <i class="fas fa-play"></i>
-                                Preview Voice
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-lightning-bolt"></i>
-                        </div>
-                        <h3>Instant Processing</h3>
-                        <p>Fast document analysis and audio generation. No queues, no waiting - your podcast is ready in seconds.</p>
-                        <div class="processing-time">
-                            <i class="fas fa-clock"></i>
-                            <span>Average: 30 seconds</span>
-                        </div>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <h3>Privacy Focused</h3>
-                        <p>Your documents are processed locally when possible. No data storage, no tracking, complete privacy protection.</p>
-                        <div class="privacy-badges">
-                            <span class="privacy-badge">
-                                <i class="fas fa-lock"></i>
-                                Secure
-                            </span>
-                            <span class="privacy-badge">
-                                <i class="fas fa-user-shield"></i>
-                                Private
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-download"></i>
-                        </div>
-                        <h3>High-Quality Output</h3>
-                        <p>Generate professional MP3 files with customizable quality settings. Perfect for sharing or publishing.</p>
-                        <div class="quality-options">
-                            <span class="quality-badge">128kbps</span>
-                            <span class="quality-badge">192kbps</span>
-                            <span class="quality-badge">320kbps</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>        <!-- Demo Section -->
-        <section id="demo" class="demo">
-            <div class="container">
-                <div class="section-header">
-                    <h2>See It In Action</h2>
-                    <p>Watch how easy it is to transform any document into a professional podcast</p>
-                </div>
-                <div class="demo-container">
-                    <div class="demo-video">
-                        <video 
-                            id="demoVideo"
-                            class="demo-video-player"
-                            poster="images/video-thumbnail.jpg"
-                            preload="metadata"
-                            controls
-                        >
-                            <source src="videos/demo-podcast-creation.mp4" type="video/mp4">
-                            <source src="videos/demo-podcast-creation.webm" type="video/webm">
-                            <!-- Fallback for older browsers -->
-                            <div class="video-fallback">
-                                <div class="video-placeholder">
-                                    <div class="play-button">
-                                        <i class="fas fa-play"></i>
-                                    </div>
-                                    <div class="video-overlay">
-                                        <h3>Document to Podcast in 30 Seconds</h3>
-                                        <p>See the complete process from upload to download</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </video>
-                    </div>
-                    <div class="demo-features">
-                        <div class="demo-step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h4>Upload Your Document</h4>
-                                <p>Simply drag and drop or select your PDF, DOCX, or TXT file</p>
-                            </div>
-                        </div>
-                        <div class="demo-step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h4>Choose Voice Settings</h4>
-                                <p>Select from multiple free AI voices and adjust speech settings</p>
-                            </div>
-                        </div>
-                        <div class="demo-step">
-                            <div class="step-number">3</div>
-                            <div class="step-content">
-                                <h4>Generate & Download</h4>
-                                <p>Click generate and download your professional podcast in MP3 format</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="demo-stats">
-                    <div class="stat-item">
-                        <div class="stat-number">30s</div>
-                        <div class="stat-label">Average Processing Time</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">6+</div>
-                        <div class="stat-label">Voice Options</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">100%</div>
-                        <div class="stat-label">Free Forever</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">∞</div>
-                        <div class="stat-label">Unlimited Usage</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- How It Works Section -->
-        <section id="how-it-works" class="how-it-works">
-            <div class="container">
-                <div class="section-header">
-                    <h2>How It Works</h2>
-                    <p>Transform your documents into podcasts in three simple steps</p>
-                </div>
-                <div class="workflow">
-                    <div class="workflow-step">
-                        <div class="step-visual">
-                            <div class="step-icon">
-                                <i class="fas fa-file-upload"></i>
-                            </div>
-                            <div class="step-number">01</div>
-                        </div>
-                        <div class="step-content">
-                            <h3>Upload Document</h3>
-                            <p>Drag and drop your PDF, DOCX, or TXT file. Our system automatically extracts and processes the text content while preserving formatting and structure.</p>
-                            <div class="step-features">
-                                <span class="feature-tag">
-                                    <i class="fas fa-check"></i>
-                                    Auto text extraction
-                                </span>
-                                <span class="feature-tag">
-                                    <i class="fas fa-check"></i>
-                                    Format preservation
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="workflow-connector">
-                        <div class="connector-line"></div>
-                        <div class="connector-arrow">
-                            <i class="fas fa-arrow-right"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="workflow-step">
-                        <div class="step-visual">
-                            <div class="step-icon">
-                                <i class="fas fa-microphone"></i>
-                            </div>
-                            <div class="step-number">02</div>
-                        </div>
-                        <div class="step-content">
-                            <h3>Choose Voice & Settings</h3>
-                            <p>Select from multiple free AI voices with different accents and styles. Adjust speech rate, pitch, and volume to create the perfect listening experience.</p>
-                            <div class="voice-options">
-                                <div class="voice-sample">
-                                    <span class="voice-name">Natural Voice</span>
-                                    <button class="voice-test-btn" title="Test Natural Voice" aria-label="Test Natural Voice">
-                                        <i class="fas fa-play"></i>
-                                    </button>
-                                </div>
-                                <div class="voice-sample">
-                                    <span class="voice-name">Professional</span>
-                                    <button class="voice-test-btn" title="Test Professional Voice" aria-label="Test Professional Voice">
-                                        <i class="fas fa-play"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="workflow-connector">
-                        <div class="connector-line"></div>
-                        <div class="connector-arrow">
-                            <i class="fas fa-arrow-right"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="workflow-step">
-                        <div class="step-visual">
-                            <div class="step-icon">
-                                <i class="fas fa-headphones"></i>
-                            </div>
-                            <div class="step-number">03</div>
-                        </div>
-                        <div class="step-content">
-                            <h3>Generate & Download</h3>
-                            <p>Click generate to create your podcast. The AI processes your text and creates a high-quality MP3 file ready for download and sharing.</p>
-                            <div class="output-options">
-                                <div class="output-format">
-                                    <i class="fas fa-file-audio"></i>
-                                    <span>MP3 Format</span>
-                                </div>
-                                <div class="output-format">
-                                    <i class="fas fa-download"></i>
-                                    <span>Instant Download</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="workflow-cta">
-                    <h3>Ready to Create Your First Podcast?</h3>
-                    <p>Join thousands of users who have already transformed their documents into engaging audio content</p>
-                    <a href="login.html" class="btn btn-primary btn-large">
-                        <i class="fas fa-rocket"></i>
-                        Start Creating Now
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <!-- Testimonials Section -->
-        <section id="testimonials" class="testimonials">
-            <div class="container">
-                <div class="section-header">
-                    <h2>What Our Users Say</h2>
-                    <p>Join thousands of satisfied users who love our free podcast creator</p>
-                </div>
-                <div class="testimonials-grid">
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <div class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <p>"Amazing tool! I converted my research papers into podcasts for easy listening during commutes. The free voices are surprisingly good quality."</p>
-                        </div>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="author-info">
-                                <h4>Dr. Sarah Chen</h4>
-                                <span>Research Scientist</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="testimonial-card featured">
-                        <div class="testimonial-badge">
-                            <i class="fas fa-crown"></i>
-                            <span>Most Popular</span>
-                        </div>
-                        <div class="testimonial-content">
-                            <div class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <p>"Perfect for converting my course materials into audio format for students. The fact that it's completely free makes it accessible to everyone. No hidden costs!"</p>
-                        </div>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">
-                                <i class="fas fa-graduation-cap"></i>
-                            </div>
-                            <div class="author-info">
-                                <h4>Prof. Michael Rodriguez</h4>
-                                <span>University Professor</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <div class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <p>"As a content creator, this tool saves me hours of recording time. I can turn my written articles into podcast episodes instantly. Game changer!"</p>
-                        </div>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">
-                                <i class="fas fa-microphone"></i>
-                            </div>
-                            <div class="author-info">
-                                <h4>Emma Thompson</h4>
-                                <span>Content Creator</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="testimonials-stats">
-                    <div class="stat-highlight">
-                        <div class="stat-number">4.9/5</div>
-                        <div class="stat-label">Average Rating</div>
-                        <div class="stat-sublabel">From 2,500+ reviews</div>
-                    </div>
-                    <div class="stat-highlight">
-                        <div class="stat-number">98%</div>
-                        <div class="stat-label">User Satisfaction</div>
-                        <div class="stat-sublabel">Would recommend to others</div>
-                    </div>
-                    <div class="stat-highlight">
-                        <div class="stat-number">24/7</div>
-                        <div class="stat-label">Available</div>
-                        <div class="stat-sublabel">No downtime, always ready</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FAQ Section -->
-        <section id="faq" class="faq">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Frequently Asked Questions</h2>
-                    <p>Everything you need to know about our free podcast creator</p>
-                </div>
-                <div class="faq-container">
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>Is this service really completely free?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Yes! Our service is 100% free with no hidden costs, subscriptions, or API key requirements. We use browser-based text-to-speech technology and open-source solutions to provide unlimited podcast generation at no cost.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>What file formats do you support?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>We support PDF, DOCX (Microsoft Word), and TXT files. Our system automatically extracts text from these formats while preserving structure and formatting where possible.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>How many voices are available?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>We offer multiple voice options through browser-based synthesis and system voices. The exact number depends on your browser and operating system, but typically includes 6+ different voices with various accents and styles.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>Is my data secure and private?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Absolutely! We prioritize your privacy. Document processing is done locally when possible, and we don't store your files or personal data. All processing is temporary and secure.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>What's the maximum file size I can upload?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Currently, we support files up to 10MB in size. This accommodates most documents including lengthy research papers, books chapters, and detailed reports.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <h3>How long does it take to generate a podcast?</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <p>Generation time depends on document length and your device performance. Most documents are processed within 30 seconds to 2 minutes. Browser-based synthesis provides near-instant results.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- CTA Section -->
-        <section class="cta">
-            <div class="container">
-                <div class="cta-content">
-                    <div class="cta-badge">
-                        <i class="fas fa-gift"></i>
-                        <span>100% Free Forever</span>
-                    </div>
-                    <h2>Transform Your Documents Today</h2>
-                    <p>Join over 10,000 users who have already discovered the power of free document-to-podcast conversion. No credit card required, no hidden fees, unlimited usage.</p>
-                    <div class="cta-buttons">
-                        <a href="login.html" class="btn btn-primary btn-large">
-                            <i class="fas fa-rocket"></i>
-                            Start Creating Free
-                        </a>
-                        <a href="#demo" class="btn btn-secondary btn-large">
-                            <i class="fas fa-play"></i>
-                            Watch Demo
-                        </a>
-                    </div>
-                    <div class="cta-features">
-                        <div class="cta-feature">
-                            <i class="fas fa-check"></i>
-                            <span>No registration required</span>
-                        </div>
-                        <div class="cta-feature">
-                            <i class="fas fa-check"></i>
-                            <span>Instant MP3 download</span>
-                        </div>
-                        <div class="cta-feature">
-                            <i class="fas fa-check"></i>
-                            <span>Multiple voice options</span>
-                        </div>
-                        <div class="cta-feature">
-                            <i class="fas fa-check"></i>
-                            <span>Privacy protected</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="footer-logo">
-                        <i class="fas fa-podcast"></i>
-                        <span>PodcastAI</span>
-                    </div>
-                    <p>Transform your documents into engaging podcasts with completely free AI-powered voice generation. No costs, no limits, unlimited creativity.</p>
-                    <div class="footer-social">
-                        <a href="#" title="Follow us on Twitter" aria-label="Twitter">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" title="Like us on Facebook" aria-label="Facebook">
-                            <i class="fab fa-facebook"></i>
-                        </a>
-                        <a href="#" title="Connect on LinkedIn" aria-label="LinkedIn">
-                            <i class="fab fa-linkedin"></i>
-                        </a>
-                        <a href="#" title="Subscribe to our YouTube" aria-label="YouTube">
-                            <i class="fab fa-youtube"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h4>Product</h4>
-                        <a href="#features">Features</a>
-                        <a href="#how-it-works">How It Works</a>
-                        <a href="#demo">Demo</a>
-                        <a href="dashboard.html">Dashboard</a>
-                    </div>
-                    <div class="footer-column">
-                        <h4>Resources</h4>
-                        <a href="#faq">FAQ</a>
-                        <a href="#testimonials">Testimonials</a>
-                        <a href="voice-clone.html">Voice Clone</a>
-                        <a href="profile.html">User Guide</a>
-                    </div>
-                    <div class="footer-column">
-                        <h4>Support</h4>
-                        <a href="#">Help Center</a>
-                        <a href="#">Contact Us</a>
-                        <a href="#">Bug Report</a>
-                        <a href="#">Feature Request</a>
-                    </div>
-                    <div class="footer-column">
-                        <h4>Legal</h4>
-                        <a href="#">Privacy Policy</a>
-                        <a href="#">Terms of Service</a>
-                        <a href="#">Cookie Policy</a>
-                        <a href="#">Open Source</a>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <div class="footer-bottom-content">
-                    <p>&copy; 2025 PodcastAI. All rights reserved. Made with ❤️ for the community.</p>
-                    <div class="footer-badges">
-                        <span class="footer-badge">
-                            <i class="fas fa-leaf"></i>
-                            100% Free
-                        </span>
-                        <span class="footer-badge">
-                            <i class="fas fa-shield-alt"></i>
-                            Privacy First
-                        </span>
-                        <span class="footer-badge">
-                            <i class="fas fa-code"></i>
-                            Open Source
-                        </span>
-                    </div>
-                </div>
-            </div>
+        
+        <div style="margin: 30px 0;">
+            <a href="https://winteriscommiting.github.io/pod-app/" class="btn">
+                🌐 Go to Live App
+            </a>
+            <a href="/api/health" class="btn secondary">
+                🔍 API Health Check
+            </a>
         </div>
-    </footer>
+        
+        <div class="api-links">
+            <h3>🔌 API Endpoints</h3>
+            <a href="/api/health">GET /api/health - Server status</a>
+            <a href="/api/auth/login">POST /api/auth/login - User login</a>
+            <a href="/api/auth/register">POST /api/auth/register - User registration</a>
+            <a href="/api/documents">GET /api/documents - List documents</a>
+            <a href="/api/podcasts">GET /api/podcasts - List podcasts</a>
+        </div>
+        
+        <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.7;">
+            This is the backend server. The frontend is deployed at GitHub Pages.
+        </p>
+    </div>
+    
+    <script>
+        // Test API connection
+        fetch('/api/health')
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Backend API is working:', data);
+            })
+            .catch(error => {
+                console.error('❌ Backend API error:', error);
+            });
+    </script>
+</body>
 </html>
