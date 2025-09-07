@@ -201,22 +201,66 @@ async function loadDashboardData() {
 
 async function loadDocuments() {
     try {
+        console.log('🔄 Loading documents...');
         const response = await utils.apiRequest('/documents');
         documents = response.documents || [];
+        console.log('📄 Documents loaded:', documents.length, documents);
         renderDocuments();
     } catch (error) {
-        console.error('Error loading documents:', error);
+        console.error('❌ Error loading documents:', error);
         utils.showToast('Error loading documents', 'error');
+        // Show empty state on error
+        const grid = document.getElementById('documentsGrid');
+        if (grid) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error loading documents</h3>
+                    <p>Please try refreshing the page</p>
+                </div>
+            `;
+        }
     }
 }
 
 // Make loadDocuments available globally
 window.loadDocuments = loadDocuments;
 
+// Global refresh function
+window.refreshCurrentTab = function() {
+    console.log('🔄 Refreshing current tab:', currentTab);
+    switch (currentTab) {
+        case 'documents':
+            loadDocuments();
+            break;
+        case 'podcasts':
+            loadPodcasts();
+            break;
+        case 'summaries':
+            if (window.summarizationManager) {
+                window.summarizationManager.refreshSummaries();
+            }
+            break;
+        case 'voices':
+            loadVoices();
+            break;
+        case 'settings':
+            loadSettings();
+            break;
+    }
+};
+
 function renderDocuments() {
+    console.log('🎨 Rendering documents:', documents.length);
     const grid = document.getElementById('documentsGrid');
     
+    if (!grid) {
+        console.error('❌ Documents grid element not found!');
+        return;
+    }
+    
     if (documents.length === 0) {
+        console.log('📄 No documents to display, showing empty state');
         grid.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-file-upload"></i>
@@ -231,6 +275,7 @@ function renderDocuments() {
         return;
     }
     
+    console.log('📄 Rendering', documents.length, 'documents');
     grid.innerHTML = documents.map(doc => `
         <div class="document-card">
             <div class="card-header">
@@ -268,20 +313,39 @@ function renderDocuments() {
 
 async function loadPodcasts() {
     try {
+        console.log('🔄 Loading podcasts...');
         const response = await utils.apiRequest('/podcasts');
         podcasts = response.data || [];
-        console.log('Loaded podcasts:', podcasts.length);
+        console.log('🎤 Podcasts loaded:', podcasts.length, podcasts);
         renderPodcasts();
     } catch (error) {
-        console.error('Error loading podcasts:', error);
+        console.error('❌ Error loading podcasts:', error);
         utils.showToast('Error loading podcasts', 'error');
+        // Show empty state on error
+        const grid = document.getElementById('podcastsGrid');
+        if (grid) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error loading podcasts</h3>
+                    <p>Please try refreshing the page</p>
+                </div>
+            `;
+        }
     }
 }
 
 function renderPodcasts() {
+    console.log('🎨 Rendering podcasts:', podcasts.length);
     const grid = document.getElementById('podcastsGrid');
     
+    if (!grid) {
+        console.error('❌ Podcasts grid element not found!');
+        return;
+    }
+    
     if (podcasts.length === 0) {
+        console.log('🎤 No podcasts to display, showing empty state');
         grid.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-headphones"></i>
@@ -296,6 +360,7 @@ function renderPodcasts() {
         return;
     }
     
+    console.log('🎤 Rendering', podcasts.length, 'podcasts');
     grid.innerHTML = podcasts.map(podcast => `
         <div class="podcast-card">
             <div class="card-header">

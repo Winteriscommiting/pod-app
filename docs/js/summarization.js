@@ -100,10 +100,15 @@ class SummarizationManager {
     }
 
     displaySummaries(documents) {
+        console.log('🎨 Rendering summaries:', documents?.length || 0);
         const grid = document.getElementById('summariesGrid');
-        if (!grid) return;
+        if (!grid) {
+            console.error('❌ Summaries grid element not found!');
+            return;
+        }
 
-        if (documents.length === 0) {
+        if (!documents || documents.length === 0) {
+            console.log('📝 No summaries to display, showing empty state');
             grid.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-file-signature"></i>
@@ -114,6 +119,7 @@ class SummarizationManager {
             return;
         }
 
+        console.log('📝 Rendering', documents.length, 'summaries');
         grid.innerHTML = documents.map(doc => this.createSummaryCard(doc)).join('');
 
         // Bind card events
