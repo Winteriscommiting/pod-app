@@ -34,6 +34,15 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = 'login.html';
         });
     }
+    
+    // Initialize dashboard functionality
+    initializeDashboard();
+    setupEventListeners();
+    
+    // Load initial data
+    loadDocuments();
+    loadPodcasts();
+    loadVoices();
 });
 
 let currentTab = 'documents';
@@ -42,6 +51,8 @@ let podcasts = [];
 let voices = { ai: [], cloned: [] };
 
 function initializeDashboard() {
+    console.log('🚀 Initializing dashboard...');
+    
     // Display user info
     const user = utils.getCurrentUser();
     if (user) {
@@ -57,22 +68,46 @@ function initializeDashboard() {
     
     // Set up tab navigation
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
+    console.log('📋 Found sidebar links:', sidebarLinks.length);
     sidebarLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const tabName = this.dataset.tab;
+            console.log('🔄 Switching to tab:', tabName);
             switchTab(tabName);
         });
     });
 }
 
 function setupEventListeners() {
+    console.log('🎯 Setting up event listeners...');
+    
     // Logout button
     document.getElementById('logoutBtn').addEventListener('click', utils.logout);
     
     // Upload document buttons
-    document.getElementById('uploadDocBtn').addEventListener('click', () => utils.showModal('uploadModal'));
-    document.getElementById('uploadDocBtnEmpty').addEventListener('click', () => utils.showModal('uploadModal'));
+    const uploadDocBtn = document.getElementById('uploadDocBtn');
+    const uploadDocBtnEmpty = document.getElementById('uploadDocBtnEmpty');
+    
+    if (uploadDocBtn) {
+        console.log('✅ Found uploadDocBtn, setting up click handler');
+        uploadDocBtn.addEventListener('click', () => {
+            console.log('📤 Upload document button clicked');
+            utils.showModal('uploadModal');
+        });
+    } else {
+        console.error('❌ uploadDocBtn not found!');
+    }
+    
+    if (uploadDocBtnEmpty) {
+        console.log('✅ Found uploadDocBtnEmpty, setting up click handler');
+        uploadDocBtnEmpty.addEventListener('click', () => {
+            console.log('📤 Upload document (empty) button clicked');
+            utils.showModal('uploadModal');
+        });
+    } else {
+        console.error('❌ uploadDocBtnEmpty not found!');
+    }
     
     // Create podcast buttons
     document.getElementById('createPodcastBtn').addEventListener('click', () => openCreatePodcastModal());
