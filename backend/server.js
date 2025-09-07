@@ -28,7 +28,6 @@ const corsOptions = {
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const HOST = '0.0.0.0'; // Listen on all interfaces
 
 // Connect to MongoDB
 connectDB();
@@ -42,29 +41,50 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// API Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/user', require('./routes/user'));
-app.use('/api/documents', require('./routes/documents'));
-app.use('/api/podcasts', require('./routes/podcasts'));
-app.use('/api/voice', require('./routes/voice'));
-
-// Health check endpoint for Render
+// Health check endpoint for Render (before other routes)
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    database: 'Connected'
+    database: 'Connected',
+    environment: process.env.NODE_ENV || 'development'
   });
 });
+
+// API Routes
+try {
+  app.use('/api/auth', require('./routes/auth'));
+  app.use('/api/user', require('./routes/user'));
+  app.use('/api/documents', require('./routes/documents'));
+  app.use('/api/podcasts', require('./routes/podcasts'));
+  app.use('/api/voice', require('./routes/voice'));
+} catch (error) {
+  console.error('❌ Error loading routes:', error);
+}
 
 // Serve frontend
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, HOST, () => {
-    console.log(`🚀 Server running on http://${HOST}:${PORT}`);
-    console.log(`📱 Accessible from network on http://192.168.137.30:${PORT}`);
+// Start server with better error handling
+const server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('🛑 SIGTERM received, shutting down gracefully');
+    server.close(() => {
+        console.log('✅ Process terminated');
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('🛑 SIGINT received, shutting down gracefully');
+    server.close(() => {
+        console.log('✅ Process terminated');
+    });
 });

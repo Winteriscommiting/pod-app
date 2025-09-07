@@ -12,12 +12,13 @@ const API_CONFIG = {
                            window.location.hostname === '127.0.0.1';
         const isGitHubPages = window.location.hostname.includes('github.io');
         
-        if (isLocalhost) {
+        // Use production backend when Render is working
+        if (isGitHubPages) {
+            console.log('� Using production backend for GitHub Pages');
+            return this.PRODUCTION_URL; // Back to Render
+        } else if (isLocalhost) {
             console.log('🏠 Using localhost backend');
             return this.DEVELOPMENT_URL;
-        } else if (isGitHubPages) {
-            console.log('📡 Using production backend for GitHub Pages');
-            return this.PRODUCTION_URL;
         } else {
             console.log('🌐 Using production backend');
             return this.PRODUCTION_URL;
@@ -48,7 +49,7 @@ const API_CONFIG = {
             }
         } catch (error) {
             console.log('❌ Backend connection failed:', error.message);
-            console.log('💡 Backend might be sleeping (Render free tier) or not deployed');
+            console.log('💡 Backend might be sleeping (Render free tier) or deployment issue');
             
             // Show user-friendly message for GitHub Pages
             if (window.location.hostname.includes('github.io')) {
