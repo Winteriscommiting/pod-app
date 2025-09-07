@@ -1,9 +1,18 @@
 // Dashboard functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Check authentication
-    if (!utils.isAuthenticated()) {
-        console.log('❌ Not authenticated, redirecting to login...');
-        window.location.href = 'login.html'; // Use relative path
+    // Check authentication with better logging
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    console.log('🔍 Dashboard authentication check:');
+    console.log('🔑 Token present:', !!token);
+    console.log('👤 User data present:', !!user);
+    
+    if (!token) {
+        console.log('❌ No token found, redirecting to login...');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 100); // Small delay to ensure storage is checked
         return;
     }
 
