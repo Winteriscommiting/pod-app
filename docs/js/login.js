@@ -12,8 +12,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('✅ Login form found, adding event listener');
     
+    // Prevent form submission multiple ways
+    loginForm.onsubmit = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    };
+    
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         console.log('🚀 Login form submitted - preventing default');
         
         const formData = new FormData(loginForm);
@@ -25,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!email || !password) {
             alert('Please fill in all fields');
-            return;
+            return false;
         }
         
         const loginBtn = document.getElementById('loginBtn');
@@ -75,7 +84,20 @@ document.addEventListener('DOMContentLoaded', function() {
             btnLoader.style.display = 'none';
             loginBtn.disabled = false;
         }
+        
+        return false;
     });
+    
+    // Also handle button click directly
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🖱️ Login button clicked - triggering form submit');
+            loginForm.dispatchEvent(new Event('submit'));
+        });
+    }
     
     console.log('✅ Login form handler attached');
 });
