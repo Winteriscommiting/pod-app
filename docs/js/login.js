@@ -157,6 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             try {
                 console.log('🌐 Making registration API call to:', window.API_BASE_URL + '/auth/register');
+                console.log('📦 Request payload:', { username, email, password: '***' });
                 
                 const response = await fetch(window.API_BASE_URL + '/auth/register', {
                     method: 'POST',
@@ -167,9 +168,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 console.log('📡 Response status:', response.status);
+                console.log('📡 Response ok:', response.ok);
+                console.log('📡 Response headers:', [...response.headers.entries()]);
                 
-                const data = await response.json();
-                console.log('📦 Response data:', data);
+                let data;
+                try {
+                    data = await response.json();
+                    console.log('📦 Response data:', data);
+                } catch (parseError) {
+                    console.error('❌ Failed to parse JSON response:', parseError);
+                    const textResponse = await response.text();
+                    console.log('📄 Raw response text:', textResponse);
+                    alert('Registration failed: Invalid server response');
+                    return false;
+                }
                 
                 if (response.ok && data.success) {
                     // Store token
@@ -188,8 +200,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
             } catch (error) {
-                console.error('❌ Registration error:', error);
-                alert('Network error: ' + error.message);
+                console.error('❌ Registration network error:', error);
+                console.error('❌ Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
+                alert('Network error during registration: ' + error.message);
             } finally {
                 // Reset loading
                 btnText.style.display = 'inline-block';
