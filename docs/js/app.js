@@ -577,7 +577,102 @@ class PodcastApp {
     setupAvatarUpload() { console.log('Setting up avatar upload...'); }
     async loadSettings() { console.log('Loading settings...'); }
     setupSettingsForms() { console.log('Setting up settings forms...'); }
-    setupAuthForms() { console.log('Setting up auth forms...'); }
+    setupAuthForms() { 
+        console.log('Setting up auth forms...');
+        
+        // Handle login form
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                console.log('Login form submitted');
+                
+                const formData = new FormData(loginForm);
+                const email = formData.get('email');
+                const password = formData.get('password');
+                
+                if (!email || !password) {
+                    this.showToast('Please fill in all fields', 'error');
+                    return;
+                }
+                
+                const loginBtn = loginForm.querySelector('#loginBtn');
+                const btnText = loginBtn.querySelector('.btn-text');
+                const btnLoader = loginBtn.querySelector('.btn-loader');
+                
+                // Show loading state
+                btnText.style.display = 'none';
+                btnLoader.style.display = 'inline-block';
+                loginBtn.disabled = true;
+                
+                try {
+                    const result = await window.auth.handleLogin(email, password);
+                    
+                    if (result.success) {
+                        this.showToast('Login successful! Redirecting...', 'success');
+                        // Redirect to dashboard
+                        setTimeout(() => {
+                            window.location.href = '/pod-app/dashboard.html';
+                        }, 1000);
+                    } else {
+                        this.showToast(result.message || 'Login failed', 'error');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    this.showToast('Network error - please try again', 'error');
+                } finally {
+                    // Reset loading state
+                    btnText.style.display = 'inline-block';
+                    btnLoader.style.display = 'none';
+                    loginBtn.disabled = false;
+                }
+            });
+        }
+        
+        // Handle register form if it exists
+        const registerForm = document.getElementById('registerForm');
+        if (registerForm) {
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                console.log('Register form submitted');
+                
+                const formData = new FormData(registerForm);
+                const username = formData.get('username');
+                const email = formData.get('email');
+                const password = formData.get('password');
+                
+                if (!username || !email || !password) {
+                    this.showToast('Please fill in all fields', 'error');
+                    return;
+                }
+                
+                const registerBtn = registerForm.querySelector('button[type="submit"]');
+                const originalText = registerBtn.textContent;
+                registerBtn.textContent = 'Creating account...';
+                registerBtn.disabled = true;
+                
+                try {
+                    const result = await window.auth.handleRegister(username, email, password);
+                    
+                    if (result.success) {
+                        this.showToast('Registration successful! Redirecting...', 'success');
+                        // Redirect to dashboard
+                        setTimeout(() => {
+                            window.location.href = '/pod-app/dashboard.html';
+                        }, 1000);
+                    } else {
+                        this.showToast(result.message || 'Registration failed', 'error');
+                    }
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    this.showToast('Network error - please try again', 'error');
+                } finally {
+                    registerBtn.textContent = originalText;
+                    registerBtn.disabled = false;
+                }
+            });
+        }
+    }
     checkAuthRedirect() { 
         if (this.token && (this.currentPage === 'login' || this.currentPage === 'register')) {
             window.location.href = '/dashboard.html';
