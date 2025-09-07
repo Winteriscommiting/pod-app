@@ -11,11 +11,13 @@ const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:5000', 
+    'http://localhost:8080',  // For local Python server testing
     'http://127.0.0.1:3000',
     'http://127.0.0.1:5000',
+    'http://127.0.0.1:8080',  // For local Python server testing
     'https://winteriscommiting.github.io',
     'https://winteriscommiting.github.io/pod-app',
-    'https://pod-app-production.onrender.com', // Add your Render URL
+    'https://pod-app-backend.onrender.com', // Your deployed backend
     'https://your-custom-domain.com' // Add any custom domains
   ],
   credentials: true,

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Login Test</title>
+</head>
+<body>
+    <h1>Simple Login Test</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="checkDashboard()">Check Dashboard</button>
+    <div id="result"></div>
+
+    <script>
+        function log(msg) {
+            document.getElementById('result').innerHTML += '<p>' + msg + '</p>';
+            console.log(msg);
+        }
+
+        async function testLogin() {
+            try {
+                log('Testing login...');
+                
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                log(`Status: ${response.status}`);
+                log(`Success: ${data.success}`);
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    log('Token stored, attempting redirect...');
+                    
+                    // Test redirect
+                    window.location.href = 'dashboard.html';
+                }
+                
+            } catch (error) {
+                log('Error: ' + error.message);
+            }
+        }
+        
+        function checkDashboard() {
+            log('Checking if dashboard exists...');
+            fetch('dashboard.html')
+                .then(response => {
+                    log(`Dashboard status: ${response.status}`);
+                    if (response.ok) {
+                        log('Dashboard file exists and is accessible');
+                    }
+                })
+                .catch(error => {
+                    log('Dashboard check error: ' + error.message);
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,15 +1,27 @@
-// GitHub Pages Configuration - TEMPORARY LOCAL TESTING
+// Production Configuration for GitHub Pages
 const API_CONFIG = {
-    // Temporary: Use local backend for testing
-    BASE_URL: 'http://localhost:5000/api',
+    // Production backend URL (update this after deploying to Render)
+    PRODUCTION_URL: 'https://pod-app-backend.onrender.com/api',
     
-    // Fallback to local development
-    FALLBACK_URL: 'http://localhost:5000/api',
+    // Local development URL
+    DEVELOPMENT_URL: 'http://localhost:5000/api',
     
     // Auto-detect environment
     get API_BASE_URL() {
-        // Temporarily always use local for testing
-        return 'http://localhost:5000/api';
+        const isLocalhost = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1';
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        
+        if (isLocalhost) {
+            console.log('🏠 Using localhost backend');
+            return this.DEVELOPMENT_URL;
+        } else if (isGitHubPages) {
+            console.log('📡 Using production backend for GitHub Pages');
+            return this.PRODUCTION_URL;
+        } else {
+            console.log('🌐 Using production backend');
+            return this.PRODUCTION_URL;
+        }
     },
     
     // Health check and connectivity test
