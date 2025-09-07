@@ -1,7 +1,7 @@
 // Production Configuration for GitHub Pages
 const API_CONFIG = {
-    // Production backend URL (update this after deploying to Render)
-    PRODUCTION_URL: 'https://pod-app-backend.onrender.com/api',
+    // Production backend URL - DEPLOYED TO RENDER
+    PRODUCTION_URL: 'https://pod-app-1.onrender.com/api',
     
     // Local development URL
     DEVELOPMENT_URL: 'http://localhost:5000/api',
