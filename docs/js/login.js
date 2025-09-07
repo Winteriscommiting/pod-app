@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             console.log('📦 Response data:', data);
             
-            if (data.success) {
+            if (response.ok && data.success) {
                 // Store token
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
@@ -72,7 +72,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Redirect
                 window.location.href = '/pod-app/dashboard.html';
             } else {
-                alert('Login failed: ' + (data.message || 'Unknown error'));
+                // Handle both client and server errors
+                const errorMessage = data.message || `Login failed (Status: ${response.status})`;
+                alert('Login failed: ' + errorMessage);
+                console.error('Login failed:', data);
             }
             
         } catch (error) {
@@ -168,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 console.log('📦 Response data:', data);
                 
-                if (data.success) {
+                if (response.ok && data.success) {
                     // Store token
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
@@ -178,7 +181,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Redirect
                     window.location.href = '/pod-app/dashboard.html';
                 } else {
-                    alert('Registration failed: ' + (data.message || 'Unknown error'));
+                    // Handle both client and server errors
+                    const errorMessage = data.message || `Registration failed (Status: ${response.status})`;
+                    alert('Registration failed: ' + errorMessage);
+                    console.error('Registration failed:', data);
                 }
                 
             } catch (error) {
