@@ -1,4 +1,7 @@
-// Production Configuration for GitHub Pages
+// Production         // Use production backend when Render is working
+        if (isGitHubPages) {
+            console.log('📡 Using production backend for GitHub Pages');
+            return this.PRODUCTION_URL; // Back to Renderiguration for GitHub Pages
 const API_CONFIG = {
     // Production backend URL - DEPLOYED TO RENDER
     PRODUCTION_URL: 'https://pod-app-1.onrender.com/api',
@@ -137,4 +140,8 @@ setTimeout(() => {
                 setTimeout(() => errorDiv.remove(), 15000);
             }
         });
-}, 1000);
+    }, 1000);
+};
+
+// Make API_BASE_URL globally available
+window.API_BASE_URL = API_CONFIG.API_BASE_URL;
