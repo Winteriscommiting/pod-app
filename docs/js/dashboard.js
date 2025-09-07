@@ -63,7 +63,11 @@ function initializeDashboard() {
     
     // Initialize summarization manager if available
     if (typeof SummarizationManager !== 'undefined') {
+        console.log('✅ SummarizationManager class found, creating instance...');
         window.summarizationManager = new SummarizationManager();
+        console.log('✅ SummarizationManager instance created');
+    } else {
+        console.warn('❌ SummarizationManager class not found');
     }
     
     // Set up tab navigation
@@ -139,6 +143,11 @@ function setupEventListeners() {
 }
 
 function switchTab(tabName) {
+    // Stop polling when leaving summaries tab
+    if (window.summarizationManager && currentTab === 'summaries' && tabName !== 'summaries') {
+        window.summarizationManager.stopPolling();
+    }
+    
     currentTab = tabName;
     
     // Update sidebar
@@ -163,7 +172,9 @@ function switchTab(tabName) {
             break;
         case 'summaries':
             if (window.summarizationManager) {
+                window.summarizationManager.loadSummarizationStats();
                 window.summarizationManager.loadSummaries();
+                window.summarizationManager.startPolling();
             }
             break;
         case 'voices':
