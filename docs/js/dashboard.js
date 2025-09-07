@@ -440,35 +440,52 @@ function loadSettings() {
 // Event Handlers
 async function handleDocumentUpload(e) {
     e.preventDefault();
+    console.log('📤 Document upload started');
     
     const formData = new FormData(e.target);
     const file = formData.get('document');
     
+    console.log('📄 Selected file:', file ? file.name : 'None');
+    
     if (!file) {
+        console.error('❌ No file selected');
         utils.showToast('Please select a file', 'error');
         return;
     }
     
+    console.log('📊 File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+    });
+    
     // Validate file
     const allowedTypes = ['.pdf', '.docx', '.txt'];
     if (!utils.validateFileType(file, allowedTypes)) {
+        console.error('❌ Invalid file type:', file.name);
         utils.showToast('Invalid file type. Only PDF, DOCX, and TXT files are allowed.', 'error');
         return;
     }
     
     if (!utils.validateFileSize(file, 10)) {
+        console.error('❌ File too large:', file.size);
         utils.showToast('File size too large. Maximum 10MB allowed.', 'error');
         return;
     }
+    
+    console.log('✅ File validation passed');
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     utils.setButtonLoading(submitBtn, true);
     
     try {
+        console.log('🚀 Making API request to /documents/upload');
         const response = await utils.apiRequest('/documents/upload', {
             method: 'POST',
             body: formData
         });
+        
+        console.log('📨 Upload response:', response);
         
         if (response.success) {
             utils.showToast('Document uploaded successfully!', 'success');
@@ -488,7 +505,7 @@ async function handleDocumentUpload(e) {
             }
         }
     } catch (error) {
-        console.error('Upload error:', error);
+        console.error('❌ Upload error:', error);
         utils.showToast(error.message || 'Upload failed', 'error');
     } finally {
         utils.setButtonLoading(submitBtn, false);

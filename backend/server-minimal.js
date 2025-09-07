@@ -4,6 +4,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -40,6 +42,82 @@ const UserSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', UserSchema);
+
+// Document schema
+const DocumentSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  filename: { type: String, required: true },
+  fileType: { type: String, required: true },
+  fileSize: { type: Number, required: true },
+  content: { type: String },
+  summary: { type: String },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  uploadedAt: { type: Date, default: Date.now },
+  status: { 
+    type: String, 
+    enum: ['uploaded', 'processing', 'processed', 'error'], 
+    default: 'uploaded' 
+  }
+});
+
+const Document = mongoose.model('Document', DocumentSchema);
+
+// Podcast schema
+const PodcastSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String },
+  documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document', required: true },
+  audioUrl: { type: String },
+  voiceType: { type: String, enum: ['ai', 'cloned'], default: 'ai' },
+  voiceId: { type: String },
+  duration: { type: Number },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now },
+  status: { 
+    type: String, 
+    enum: ['pending', 'processing', 'completed', 'error'], 
+    default: 'pending' 
+  }
+});
+
+const Podcast = mongoose.model('Podcast', PodcastSchema);
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['.pdf', '.docx', '.txt'];
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    
+    if (allowedTypes.includes(fileExt)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, DOCX, and TXT files are allowed.'), false);
+    }
+  }
+});
+
+// Auth middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'Access token required' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key-for-testing', (err, user) => {
+    if (err) {
+      return res.status(403).json({ success: false, message: 'Invalid or expired token' });
+    }
+    req.user = user;
+    next();
+  });
+};
 
 // CORS middleware
 app.use(cors({
@@ -213,12 +291,223 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+// Document upload endpoint
+app.post('/api/documents/upload', authenticateToken, upload.single('document'), async (req, res) => {
+  try {
+    console.log('📤 Document upload request received');
+    
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    console.log('📄 File details:', {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
+
+    // Extract text content based on file type
+    let content = '';
+    const fileExt = path.extname(req.file.originalname).toLowerCase();
+    
+    if (fileExt === '.txt') {
+      content = req.file.buffer.toString('utf8');
+    } else if (fileExt === '.pdf' || fileExt === '.docx') {
+      // For now, store as binary and handle extraction later
+      content = `[${fileExt.toUpperCase()} file content - processing required]`;
+    }
+
+    const document = new Document({
+      title: req.file.originalname,
+      filename: req.file.originalname,
+      fileType: fileExt,
+      fileSize: req.file.size,
+      content: content,
+      userId: req.user.id,
+      status: fileExt === '.txt' ? 'processed' : 'uploaded'
+    });
+
+    await document.save();
+    console.log('✅ Document saved to database');
+
+    res.json({
+      success: true,
+      message: 'Document uploaded successfully',
+      data: {
+        id: document._id,
+        title: document.title,
+        fileType: document.fileType,
+        fileSize: document.fileSize,
+        status: document.status,
+        uploadedAt: document.uploadedAt
+      }
+    });
+  } catch (error) {
+    console.error('❌ Document upload error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Upload failed' 
+    });
+  }
+});
+
+// Get user documents
+app.get('/api/documents', authenticateToken, async (req, res) => {
+  try {
+    const documents = await Document.find({ userId: req.user.id })
+      .sort({ uploadedAt: -1 })
+      .select('-content'); // Exclude content for list view
+
+    res.json({
+      success: true,
+      data: documents
+    });
+  } catch (error) {
+    console.error('❌ Error fetching documents:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch documents' });
+  }
+});
+
+// Get single document
+app.get('/api/documents/:id', authenticateToken, async (req, res) => {
+  try {
+    const document = await Document.findOne({ 
+      _id: req.params.id, 
+      userId: req.user.id 
+    });
+
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    res.json({
+      success: true,
+      data: document
+    });
+  } catch (error) {
+    console.error('❌ Error fetching document:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch document' });
+  }
+});
+
+// Create podcast
+app.post('/api/podcasts', authenticateToken, async (req, res) => {
+  try {
+    const { documentId, title, description, voiceType = 'ai', voiceId } = req.body;
+
+    if (!documentId) {
+      return res.status(400).json({ success: false, message: 'Document ID is required' });
+    }
+
+    // Verify document exists and belongs to user
+    const document = await Document.findOne({ 
+      _id: documentId, 
+      userId: req.user.id 
+    });
+
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    const podcast = new Podcast({
+      title: title || `Podcast from ${document.title}`,
+      description: description || `Generated podcast from ${document.title}`,
+      documentId: documentId,
+      voiceType: voiceType,
+      voiceId: voiceId,
+      userId: req.user.id,
+      status: 'processing'
+    });
+
+    await podcast.save();
+
+    // In a real implementation, you would trigger audio generation here
+    // For now, we'll simulate processing
+    setTimeout(async () => {
+      try {
+        podcast.status = 'completed';
+        podcast.audioUrl = `/api/podcasts/${podcast._id}/audio`;
+        podcast.duration = Math.floor(Math.random() * 1800) + 300; // Random 5-30 minutes
+        await podcast.save();
+        console.log(`✅ Podcast ${podcast._id} processing completed`);
+      } catch (error) {
+        console.error('❌ Podcast processing error:', error);
+        podcast.status = 'error';
+        await podcast.save();
+      }
+    }, 5000); // Simulate 5 second processing
+
+    res.json({
+      success: true,
+      message: 'Podcast creation started',
+      data: {
+        id: podcast._id,
+        title: podcast.title,
+        status: podcast.status,
+        createdAt: podcast.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('❌ Podcast creation error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Failed to create podcast' 
+    });
+  }
+});
+
+// Get user podcasts
+app.get('/api/podcasts', authenticateToken, async (req, res) => {
+  try {
+    const podcasts = await Podcast.find({ userId: req.user.id })
+      .populate('documentId', 'title filename')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: podcasts
+    });
+  } catch (error) {
+    console.error('❌ Error fetching podcasts:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch podcasts' });
+  }
+});
+
+// Get single podcast
+app.get('/api/podcasts/:id', authenticateToken, async (req, res) => {
+  try {
+    const podcast = await Podcast.findOne({ 
+      _id: req.params.id, 
+      userId: req.user.id 
+    }).populate('documentId', 'title filename content');
+
+    if (!podcast) {
+      return res.status(404).json({ success: false, message: 'Podcast not found' });
+    }
+
+    res.json({
+      success: true,
+      data: podcast
+    });
+  } catch (error) {
+    console.error('❌ Error fetching podcast:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch podcast' });
+  }
+});
+
 // Catch all other routes
 app.get('*', (req, res) => {
   res.json({ 
     message: 'Pod App Backend API', 
     status: 'running',
-    endpoints: ['/api/health', '/api/auth/login', '/api/auth/register']
+    endpoints: [
+      '/api/health', 
+      '/api/auth/login', 
+      '/api/auth/register',
+      '/api/documents/upload',
+      '/api/documents',
+      '/api/podcasts'
+    ]
   });
 });
 
