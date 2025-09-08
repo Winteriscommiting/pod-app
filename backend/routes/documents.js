@@ -10,6 +10,7 @@ const {
   updateDocument,
   getDocumentSummary,
   regenerateSummary,
+  summarizeDocumentManually,
   getDocumentsWithSummaries,
   getSummarizationStats
 } = require('../controllers/documentController');
@@ -53,6 +54,11 @@ router.get('/:id/summary', auth, getDocumentSummary);
 // @desc    Update document
 // @access  Private
 router.put('/:id', auth, updateDocument);
+
+// @route   POST /api/documents/:id/summarize
+// @desc    Manually summarize document
+// @access  Private
+router.post('/:id/summarize', auth, summarizeDocumentManually);
 
 // @route   POST /api/documents/:id/regenerate-summary
 // @desc    Regenerate document summary

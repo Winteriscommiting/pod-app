@@ -1,10 +1,13 @@
 const Document = require('../models/Document');
 const documentProcessor = require('../services/documentProcessor');
-const summarizationService = require('../services/summarizationService');
+const EfficientSummarizationService = require('../services/efficientSummarization');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+
+// Initialize the efficient summarization service
+const summarizationService = new EfficientSummarizationService();
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -212,7 +215,7 @@ exports.getDocuments = async (req, res) => {
     
     res.json({
       success: true,
-      data: documents,
+      documents: documents, // Frontend expects 'documents' not 'data'
       pagination: {
         current: page,
         pages: Math.ceil(total / limit),
@@ -317,31 +320,43 @@ async function summarizeDocument(documentId) {
     document.summarizationStatus = 'processing';
     await document.save();
 
-    console.log(`Starting summarization for document: ${document.originalName}`);
+    console.log(`Starting efficient summarization for document: ${document.originalName}`);
+    const startTime = Date.now();
 
-    // Perform summarization
-    const analysis = await summarizationService.analyzeDocument(document.extractedText);
+    // Perform efficient summarization
+    const result = await summarizationService.summarizeText(document.extractedText, {
+      maxLength: 400,
+      maxSentences: 5
+    });
 
-    if (analysis.success) {
+    // Get text statistics
+    const textStats = summarizationService.getTextStats(document.extractedText);
+
+    if (result.success) {
       // Update document with summarization results
-      document.summary = analysis.summary;
-      document.keywords = analysis.keywords;
-      document.readingTimeMinutes = analysis.readingTimeMinutes;
-      document.compressionRatio = analysis.compressionRatio;
-      document.summarizationModel = analysis.model;
+      document.summary = result.summary;
+      document.wordCount = textStats.wordCount;
+      document.readingTime = textStats.readingTime;
+      document.compressionRatio = Math.round(result.compressionRatio * 100);
+      document.summarizationMethod = result.method;
       document.summarizationStatus = 'completed';
       document.summarizationError = '';
+      document.processingTime = result.processingTime;
+      
+      console.log(`✅ Summarization completed in ${result.processingTime}ms using ${result.method} method`);
+      console.log(`📊 Compression: ${document.compressionRatio}%, Reading time: ${document.readingTime}min`);
     } else {
       // Handle summarization failure
-      document.summary = analysis.summary || ''; // Fallback summary
-      document.keywords = analysis.keywords || [];
-      document.readingTimeMinutes = analysis.readingTimeMinutes || 0;
+      document.summary = result.summary || 'Failed to generate summary';
+      document.wordCount = textStats.wordCount;
+      document.readingTime = textStats.readingTime;
       document.summarizationStatus = 'failed';
-      document.summarizationError = analysis.error || 'Summarization failed';
+      document.summarizationError = result.error || 'Summarization failed';
+      
+      console.error(`❌ Summarization failed for ${document.originalName}:`, result.error);
     }
 
     await document.save();
-    console.log(`Summarization completed for document: ${document.originalName}`);
 
   } catch (error) {
     console.error('Error during document summarization:', error);
@@ -429,14 +444,83 @@ exports.regenerateSummary = async (req, res) => {
   }
 };
 
-// Get all documents with summaries
+exports.summarizeDocumentManually = async (req, res) => {
+  try {
+    const document = await Document.findOne({
+      _id: req.params.id,
+      userId: req.user.id
+    });
+
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    if (!document.extractedText || document.extractedText.trim() === '') {
+      return res.status(400).json({ message: 'Document has no content to summarize' });
+    }
+
+    // Update status to processing
+    document.summarizationStatus = 'processing';
+    await document.save();
+
+    // Perform summarization immediately
+    const result = await summarizationService.summarizeText(document.extractedText, {
+      maxLength: 400,
+      maxSentences: 5
+    });
+
+    const textStats = summarizationService.getTextStats(document.extractedText);
+
+    if (result.success) {
+      // Update document with results
+      document.summary = result.summary;
+      document.wordCount = textStats.wordCount;
+      document.readingTime = textStats.readingTime;
+      document.compressionRatio = Math.round(result.compressionRatio * 100);
+      document.summarizationMethod = result.method;
+      document.summarizationStatus = 'completed';
+      document.summarizationError = '';
+      document.processingTime = result.processingTime;
+
+      await document.save();
+
+      res.json({
+        success: true,
+        message: 'Document summarized successfully',
+        data: {
+          id: document._id,
+          summary: document.summary,
+          compressionRatio: document.compressionRatio,
+          readingTime: document.readingTime,
+          method: document.summarizationMethod,
+          processingTime: document.processingTime
+        }
+      });
+    } else {
+      document.summarizationStatus = 'failed';
+      document.summarizationError = result.error || 'Summarization failed';
+      await document.save();
+
+      res.status(500).json({
+        success: false,
+        message: 'Summarization failed',
+        error: result.error
+      });
+    }
+
+  } catch (error) {
+    console.error('Manual summarization error:', error);
+    res.status(500).json({ message: 'Server error during summarization' });
+  }
+};
+
+// Get all documents with summaries (for summaries page)
 exports.getDocumentsWithSummaries = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || '';
-    const fileType = req.query.fileType || '';
-    const summarized = req.query.summarized; // 'true', 'false', or undefined
+    const status = req.query.status; // 'completed', 'pending', 'failed'
     
     // Build query
     let query = { userId: req.user.id };
@@ -444,19 +528,19 @@ exports.getDocumentsWithSummaries = async (req, res) => {
     if (search) {
       query.$or = [
         { originalName: { $regex: search, $options: 'i' } },
-        { summary: { $regex: search, $options: 'i' } },
-        { keywords: { $in: [new RegExp(search, 'i')] } }
+        { summary: { $regex: search, $options: 'i' } }
       ];
     }
     
-    if (fileType) {
-      query.fileType = fileType;
-    }
-
-    if (summarized === 'true') {
-      query.summarizationStatus = 'completed';
-    } else if (summarized === 'false') {
-      query.summarizationStatus = { $ne: 'completed' };
+    if (status) {
+      if (status === 'completed') {
+        query.summarizationStatus = 'completed';
+        query.summary = { $exists: true, $ne: '' };
+      } else if (status === 'pending') {
+        query.summarizationStatus = { $in: ['pending', 'processing'] };
+      } else if (status === 'failed') {
+        query.summarizationStatus = 'failed';
+      }
     }
     
     // Get total count for pagination
@@ -468,10 +552,25 @@ exports.getDocumentsWithSummaries = async (req, res) => {
       .limit(limit)
       .skip((page - 1) * limit)
       .select('-extractedText'); // Exclude full text for performance
+
+    // Calculate statistics
+    const allDocs = await Document.find({ userId: req.user.id });
+    const stats = {
+      totalDocuments: allDocs.length,
+      summarizedCount: allDocs.filter(doc => doc.summarizationStatus === 'completed' && doc.summary).length,
+      avgCompressionRatio: Math.round(
+        allDocs
+          .filter(doc => doc.compressionRatio > 0)
+          .reduce((sum, doc) => sum + doc.compressionRatio, 0) / 
+        Math.max(1, allDocs.filter(doc => doc.compressionRatio > 0).length)
+      ),
+      totalReadingTime: allDocs.reduce((sum, doc) => sum + (doc.readingTime || 0), 0)
+    };
     
     res.json({
       success: true,
       data: documents,
+      stats: stats,
       pagination: {
         current: page,
         pages: Math.ceil(total / limit),

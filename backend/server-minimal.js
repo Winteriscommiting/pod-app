@@ -543,43 +543,36 @@ app.get('/api/summaries', authenticateToken, async (req, res) => {
     
     let filter = { userId: req.user.id };
     if (status === 'completed') {
-      filter.summary = { $exists: true, $ne: null };
+      filter.summarizationStatus = 'completed';
+      filter.summary = { $exists: true, $ne: '' };
     } else if (status === 'pending') {
-      filter.summary = { $exists: false };
+      filter.summarizationStatus = { $in: ['pending', 'processing'] };
     } else if (status === 'failed') {
-      filter.status = 'error';
+      filter.summarizationStatus = 'failed';
     }
 
     const documents = await Document.find(filter)
-      .sort({ uploadedAt: -1 })
-      .select('title filename fileType fileSize summary wordCount readingTime compressionRatio status uploadedAt');
+      .sort({ createdAt: -1 })
+      .select('originalName filename fileType fileSize summary wordCount readingTime compressionRatio summarizationStatus createdAt processingTime summarizationMethod');
 
     // Calculate stats
-    const totalDocuments = await Document.countDocuments({ userId: req.user.id });
-    const summarizedDocuments = await Document.countDocuments({ 
-      userId: req.user.id, 
-      summary: { $exists: true, $ne: null } 
-    });
+    const allDocs = await Document.find({ userId: req.user.id });
+    const summarizedDocs = allDocs.filter(doc => doc.summarizationStatus === 'completed' && doc.summary);
     
-    const avgCompressionRatio = await Document.aggregate([
-      { $match: { userId: req.user.id, compressionRatio: { $exists: true } } },
-      { $group: { _id: null, avgCompression: { $avg: '$compressionRatio' } } }
-    ]);
-    
-    const totalReadingTime = await Document.aggregate([
-      { $match: { userId: req.user.id, readingTime: { $exists: true } } },
-      { $group: { _id: null, totalTime: { $sum: '$readingTime' } } }
-    ]);
+    const stats = {
+      totalDocuments: allDocs.length,
+      summarizedCount: summarizedDocs.length,
+      avgCompressionRatio: Math.round(
+        summarizedDocs.length > 0 ? 
+        summarizedDocs.reduce((sum, doc) => sum + (doc.compressionRatio || 0), 0) / summarizedDocs.length : 0
+      ),
+      totalReadingTime: allDocs.reduce((sum, doc) => sum + (doc.readingTime || 0), 0)
+    };
 
     res.json({
       success: true,
       data: documents,
-      stats: {
-        totalDocuments,
-        summarizedCount: summarizedDocuments,
-        avgCompressionRatio: Math.round(avgCompressionRatio[0]?.avgCompression || 0),
-        totalReadingTime: totalReadingTime[0]?.totalTime || 0
-      }
+      stats: stats
     });
   } catch (error) {
     console.error('❌ Error fetching summaries:', error);
